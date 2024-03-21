@@ -43,3 +43,6 @@ bin/
 /dist/
 /nbdist/
 /.nb-gradle/
+
+# Avoid Duplicated Tracking
+**/.git
