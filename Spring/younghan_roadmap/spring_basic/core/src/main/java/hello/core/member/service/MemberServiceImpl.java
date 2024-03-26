@@ -6,7 +6,19 @@ import hello.core.member.repository.MemoryMemberRepository;
 
 public class MemberServiceImpl implements MemberService {
 
-    private final MemberRepository memberRepository = new MemoryMemberRepository();
+    // MemberServiceImpl이 MemoryMemberRepository와 의존관계로 DIP에 위배된다.
+//    private final MemberRepository memberRepository = new MemoryMemberRepository();
+    /**
+     * MemberRepository 인터페이스에만 의존한다.
+     */
+    private final MemberRepository memberRepository;
+
+    /**
+     * MemberRepository 구현체를 외부에서 주입받는다. 구현체가 무엇일지는 외부에서 결정한다.
+     */
+    public MemberServiceImpl(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
+    }
 
     @Override
     public void join(Member member) {
