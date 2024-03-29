@@ -1,6 +1,7 @@
 package hello.core.singleton;
 
 import hello.core.AppConfig;
+import hello.core.AutoAppConfig;
 import hello.core.member.repository.MemberRepository;
 import hello.core.member.repository.MemoryMemberRepository;
 import hello.core.member.service.MemberServiceImpl;
@@ -16,10 +17,10 @@ public class ConfigurationSingletoneTest {
     @Test
     @DisplayName("스프링 빈 싱글톤 테스트")
     void 테스트() {
-        ApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
-        MemberServiceImpl memberService = ac.getBean("memberService", MemberServiceImpl.class);
-        OrderServiceImpl orderService = ac.getBean("orderService", OrderServiceImpl.class);
-        MemberRepository memberRepository = ac.getBean("memberRepository", MemoryMemberRepository.class);
+        ApplicationContext ac = new AnnotationConfigApplicationContext(AutoAppConfig.class);
+        MemberServiceImpl memberService = ac.getBean( MemberServiceImpl.class);
+        OrderServiceImpl orderService = ac.getBean( OrderServiceImpl.class);
+        MemberRepository memberRepository = ac.getBean( MemoryMemberRepository.class);
 
         MemberRepository memberRepository1 = memberService.getMemberRepository();
         MemberRepository memberRepository2 = orderService.getMemberRepository();
