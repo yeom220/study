@@ -45,7 +45,6 @@ public class Main {
             hour = hour + 24;
         }
         System.out.println(hour + " " + min);
-
     }
 
 }
