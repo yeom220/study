@@ -16,7 +16,7 @@
         </thead>
         <tbody>
             <c:forEach var="item" items="${members}">
-                <tr> 
+                <tr>
                     <td>${item.id}</td>
                     <td>${item.username}</td>
                     <td>${item.age}</td>
