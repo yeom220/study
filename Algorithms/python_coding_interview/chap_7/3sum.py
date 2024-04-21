@@ -4,11 +4,12 @@
 # Notice that the solution set must not contain duplicate triplets.
 from typing import List
 
-# nums = [-1, 0, 1, 2, -1, -4]
-nums = [0, 0, 0]
+nums = [-1, 0, 1, 2, -1, -4]
+# nums = [0, 0, 0]
 expected = [[-1, -1, 2], [-1, 0, 1]]
 
-def threeSum(self, nums: List[int]) -> List[List[int]]:
+
+def threeSum(nums: List[int]) -> List[List[int]]:
     results = []
     nums.sort()
     # 1.브루트 포스 n^3 반복
@@ -50,5 +51,6 @@ def threeSum(self, nums: List[int]) -> List[List[int]]:
                 right -= 1
     return results
 
-output = threeSum(nums, nums)
+
+output = threeSum(nums)
 print(output == expected, output)
