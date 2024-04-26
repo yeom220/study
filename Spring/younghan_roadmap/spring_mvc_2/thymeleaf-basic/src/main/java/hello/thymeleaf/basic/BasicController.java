@@ -76,9 +76,9 @@ public class BasicController {
     }
 
     @Component("helloBean")
-    static class HelloBean{
-        public String hello(String text){
-            return "Hello "+text;
+    static class HelloBean {
+        public String hello(String text) {
+            return "Hello " + text;
         }
     }
 
@@ -95,7 +95,7 @@ public class BasicController {
         return "basic/data";
     }
 
-  @GetMapping("/literal")
+    @GetMapping("/literal")
     public String literal(Model model) {
         model.addAttribute("data", "Spring!");
         return "basic/literal";
@@ -106,5 +106,50 @@ public class BasicController {
         model.addAttribute("data", "Hello Spring!");
         model.addAttribute("nullData", null);
         return "basic/operation";
+    }
+
+    @GetMapping("/attribute")
+    public String attribute() {
+        return "basic/attribute";
+    }
+
+    @GetMapping("/each")
+    public String each(Model model) {
+        addUsers(model);
+        return "basic/each";
+    }
+
+    @GetMapping("/condition")
+    public String condition(Model model) {
+        addUsers(model);
+        return "basic/condition";
+    }
+
+    @GetMapping("/comments")
+    public String comments(Model model) {
+        model.addAttribute("data", "Hello Spring!");
+        return "basic/comments";
+    }
+
+    @GetMapping("/block")
+    public String block(Model model) {
+        addUsers(model);
+        return "basic/block";
+    }
+
+    @GetMapping("/javascript")
+    public String javascript(Model model){
+        model.addAttribute("user", new User("userA", 10));
+        addUsers(model);
+        return "basic/javascript";
+    }
+
+    private void addUsers(Model model) {
+        List<User> users = new ArrayList<>();
+        users.add(new User("userA", 10));
+        users.add(new User("userB", 20));
+        users.add(new User("userC", 30));
+
+        model.addAttribute("users", users);
     }
 }
