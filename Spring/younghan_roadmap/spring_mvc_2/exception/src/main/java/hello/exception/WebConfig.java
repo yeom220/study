@@ -29,8 +29,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .order(1)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
-                        "/css/**", "/*.ico",
-                        "/error", "/error-page/**" //오류 페이지 경로
+                        "/css/**", "/*.ico"
+//                       , "/error", "/error-page/**" //오류 페이지 경로
                 );
     }
 
