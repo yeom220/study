@@ -1,4 +1,5 @@
 # Definition for a binary tree node.
+import collections
 from typing import List
 
 
@@ -31,3 +32,29 @@ def list_to_binary_tree(list: List) -> TreeNode:
         i += 1
 
     return root
+
+
+def binary_tree_to_list(root: TreeNode) -> List:
+    result = []
+
+    def dfs(node: TreeNode):
+        if node:
+            result.append(node.val)
+            dfs(node.left)
+            dfs(node.right)
+
+        return None
+
+    def bfs(node: TreeNode):
+        queue = collections.deque([node])
+
+        while queue:
+            cur = queue.popleft()
+            if cur:
+                result.append(cur.val)
+                queue.append(cur.left)
+                queue.append(cur.right)
+
+    # dfs(root)
+    bfs(root)
+    return result
