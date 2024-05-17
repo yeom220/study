@@ -54,6 +54,8 @@ def binary_tree_to_list(root: TreeNode) -> List:
                 result.append(cur.val)
                 queue.append(cur.left)
                 queue.append(cur.right)
+            else:
+                result.append(None)
 
     # dfs(root)
     bfs(root)
