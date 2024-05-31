@@ -13,9 +13,13 @@
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
-
-# VS Code
-.vscode/
+# Editor directories and files
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # Spring Meta Data
 HELP.md
@@ -38,11 +42,36 @@ bin/
 !**/src/test/**/bin/
 
 # NetBeans
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+**/nbproject/private/
+**/nbbuild/
+**/dist/
+**/nbdist/
+**/.nb-gradle/
 
 # Avoid Duplicated Tracking
 **/.git
+
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist/
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+
+# Local env files
+#.env
+#.env.*
+!.env.example
+
