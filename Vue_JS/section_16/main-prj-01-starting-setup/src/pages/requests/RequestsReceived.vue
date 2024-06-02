@@ -1,6 +1,4 @@
-<template>
-  <p></p>
-</template>
+<template>REQUEST</template>
 <script>
 export default {};
 </script>

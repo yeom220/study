@@ -8,12 +8,14 @@ import RequestsReceived from './pages/requests/RequestsReceived.vue';
 import NotFound from './pages/NotFound.vue';
 
 const router = createRouter({
+  // mode: 'history',
   history: createWebHashHistory(),
   routes: [
     { path: '/', redirect: '/coaches' },
     { path: '/coaches', component: CoachesList },
     {
       path: '/coaches/:id',
+      props: true,
       component: CoachDetail,
       children: [{ path: 'contact', component: ContactCoach }], // /coaches/c1/contact
     },
