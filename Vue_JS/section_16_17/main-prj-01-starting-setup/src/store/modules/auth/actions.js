@@ -1,3 +1,5 @@
+import secretKey from '../../../secret.js';
+
 let timer;
 
 export default {
@@ -15,12 +17,16 @@ export default {
   },
   async auth(context, payload) {
     const mode = payload.mode;
+
+    const apiKey = secretKey.firebaseKey;
     let url =
-      'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBPRYr1YBg3iSDRAVWhJ3_j_GCiheIeJhE';
+      'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' +
+      apiKey;
 
     if (mode === 'signup') {
       url =
-        'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyBPRYr1YBg3iSDRAVWhJ3_j_GCiheIeJhE';
+        'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' +
+        apiKey;
     }
 
     const response = await fetch(url, {
@@ -42,8 +48,7 @@ export default {
       throw error;
     }
 
-    // const expiresIn = +responseData.expiresIn * 1000;
-    const expiresIn = 5000;
+    const expiresIn = +responseData.expiresIn * 1000;
     const expirationDate = new Date().getTime() + expiresIn;
 
     localStorage.setItem('token', responseData.idToken);
