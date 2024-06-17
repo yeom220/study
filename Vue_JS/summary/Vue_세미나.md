@@ -1,195 +1,325 @@
-# 목차
-- Vue란?
-- Vue 핵심 개념
-- vuex
-- router
-- Composition API
+<br>
 
+# Vue 3 Composition API와 타입 스크립트
+<br>
 
-# Vue란?
->[!Vue]
->사용자 인터페이스를 구축하기 위해 설계된 자바스크립트 프레임워크이다.
->Vue는 단순성과 유연성 덕분에 프론트엔드 영역에서 많이 활용되고 있다.
-
-### 주요 특징
-- **반응형 데이터 바인딩**
-	- Vue.js는 MVVM(Model-View-ViewModel) 패턴을 기반으로 하여, 데이터 모델과 뷰 사이의 반응형 데이터 바인딩을 제공한다. 이는 데이터가 변경되면 자동으로 UI가 업데이트 되도록 한다.
-- **컴포넌트 기반 구조**
-	- Vue.js는 UI를 컴포넌트 단위로 나누어 개발할 수 있다. 컴포넌트는 재사용 가능하고 독립적이며, 복잡한 애플리케이션을 개발할 때 모듈화된 코드를 작성할 수 있게 한다.
-- **디렉티브 및 템플릿 구문**
-	- Vue.js는 `v-bind`, `v-model`, `v-if`, `v-for` 등 다양한 디렉티브를 제공하여, 데이터와 DOM 간의 상호 작용을 쉽게 구현할 수 있게 한다. 템플릿 구문을 통해 선언적으로 UI를 구성할 수 있다.
-- **강력한 생태계**
-	- Vue.js는 Vue Router, Vuex, Vue CLI 등 다양한 공식 라이브러리 및 도구를 통해 라우팅, 상태 관리, 프로젝트 생성 및 빌드 설정을 지원한다. 이를 통해 복잡한 애플리케이션 개발이 용이해진다.
-- **유연성**
-	- Vue.js는 다양한 방식으로 사용될 수 있다. 작은 위젯이나 컴포넌트로 시작하여, 점진적으로 복잡한 SPA(Single Page Application)로 확장할 수 있다.
-
-
-
-# Vue 핵심 개념
-
-### Vue 앱 인스턴스 생성 및 DOM 연결
-- Vue 앱 초기화
-	- createApp 함수에 루트가 될 뷰 파일을 파라미터로 넘긴 후에DOM(html)에 마운트 한다.
-```javascript
-// main.js
-import { createApp } from 'vue';
-
-import App from './App.vue';
-
-const app = createApp(App);
-app.mount('#app');
-```
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <body>
-    <div id="app"></div>
-  </body>
-</html>
-```
-
-```javascript
-<template>
-  <section>
-	{{ hello }}
-  </section>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-	    hello: 'Hello World',
-    };
-  }
-};
-</script>
-```
-
-
-
-### `{{ }}` 보간법
-- 데이터 바인딩은  `{{ data }}` 문법을 사용하며, `data` 값이 변경되면, 화면도 함께 변경된다.
-```javascript
-<template>
-  <section>
-	{{ data }}
-  </section>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-	    data: 'Hello World',
-    };
-  }
-};
-</script>
-```
-
-
-
-### V-디렉티브
-
-- `v-once`
-	- 한번만 렌더링 되고 데이터(`message`)의 값이 변경돼도 화면을 갱신하지 않는다.
-```javascript
-<p v-once>{{ message }}</p>
-```
-
-- `v-html`
-	- `<template>`에 html 을 출력 해야하는 경우 사용
-	- 단, XSS(교차 사이트 스크립팅) 취약점이 있으므로, 가급적 사용하지 않는다.
-```javascript
-<p v-html="rawHtml"><p>
-```
-
-- `v-bind`
-	- html 태그 속성에 사용하는 경우 `v-bind` 사용 (`:속성명`으로 축약 가능)
-```javascript
-<a v-bind:href="vueLink">naver</a>
-<a :href="vueLink">naver</a>  // 위와 동일
-```
-
-- `v-bind:class`
-	- html class에 반응형 객체 바인딩에 사용한다. (축약가능 `:class`)
-	- 기존 class 와 같이 사용 가능하다.
-	- 값으로 변수, 객체, 배열을 받을 수 있다.
-```html
-<button :class="isActive ? active : ''" class="btnClass">Button</button> // 변수
-<button :class="[isActive ? active : '', btnClass]">Button</button> // 배열
-<button :class="{active : isActive, btnClass : true}">Button</button> // 객체
-```
-
-- `v-if="조건식"` `v-else-if="조건식"` `v-else`
-	- 조건식이 true 일 경우 렌더링
-	- `v-if`, `v-else-if`, `v-else` 사이에 다른 태그가 들어가면 오류 발생
-```html
-<h2 v-if="type === 'A'">A</h2>
-<h2 v-else-if="type === 'B'">B</h2>
-<!-- <h2>오류 발생</h2> -->
-<h2 v-else>Else</h2>
-```
-
-- `v-show`
-	- 조건식이 true 일 경우 UI 노출 (렌더링은 되어있지만 display 속성으로 노출 여부 변경)
-```html
-<h1 v-show="visible">제목</h1>
-```
-
-`v-if`와 `v-show`는 렌더링 여부에서 차이가 있다. 동일 UI의 노출/비노출 전환이 많은 경우는 `v-show`를 사용하고, 일반적으로는 `v-if`를 사용한다.
-
-- `v-for`
-	- `v-for="item in items"` 문법을 사용하여 배열에서 항목을 순차적으로 할당한다.
-	- `v-for="(item, index) in items"` 문법을 사용하면 항목과 인덱스를 함께 가져올 수 있다.
-	- `v-for="(value, key, index) in object"` 문법을 사용하면 객체의 속성, 값, 인덱스를 가져올 수 있다.
-	- **`v-for`를 사용할 때 `:key` 속성에 유니크 값을 지정해야 한다. (필수)**
-```html
-
-```
-
-
-----
-
-# Vue 3 (Composition API)
-### `<template>`에서 `v-if`
-- https://v3-docs.vuejs-korea.org/api/built-in-special-elements.html#template
-
+## 컴포넌트 Props 작성
 ### defineProps()
-- https://v3-docs.vuejs-korea.org/guide/typescript/composition-api.html#typing-component-props
+
+컴포넌트의 props를 정의하는 함수입니다.
+`<script setup>` 을 사용할 때 `defineProps()`는 전달인자를 기반으로 `props` 타입 추론을 진행합니다.
+
+**런타임 선언 방식**
+```typescript
+<script setup lang="ts">
+const props = defineProps({
+  foo: { type: String, required: true },
+  bar: Number
+})
+
+props.foo // string
+props.bar // number | undefined
+</script>
+```
+
+**타입 기반 선언 방식 (많이 사용하는 방식)**
+```typescript
+<script setup lang="ts">
+const props = defineProps<{
+  foo: string
+  bar?: number
+}>()
+</script>
+```
+
+컴파일러는 타입 전달인자를 기반으로 같은 런타임 옵션을 추론 하도록 시도합니다. 타입 기반 선언은 런타임 선언 방식과 정확히 동일한 런타임 옵션으로 컴파일 됩니다.
+
+타입 기반 선언 또는 런타임 선언 중 하나를 사용할 수 있지만 동시에 둘 다 사용할 수는 없습니다.
+
+**props 타입을 별도의 인터페이스로 지정**
+```typescript
+<script setup lang="ts">
+interface Props {
+  foo: string
+  bar?: number
+}
+
+const props = defineProps<Props>()
+</script>
+```
+
+##### 문법 제한
+`defineProps()` 의 제너릭 전달인자는 다음 중 하나여야 합니다.
+
+객체 리터럴 타입
+```ts
+defineProps<{ /*... */ }>()
+```
+
+**동일한 파일**에 있는 인터페이스 또는 객체 리터럴 타입에 대한 참조
+```ts
+interface Props {/* ... */}
+
+defineProps<Props>()
+```
+
+`defineProps` 의 제네릭 전달인자는 가져온 타입을 **사용 할 수 없습니다**
+```ts
+import { Props } from './other-file'
+
+// 지원하지 않음
+defineProps<Props>()
+```
+
+[공식 문서](https://v3-docs.vuejs-korea.org/guide/typescript/composition-api.html#typing-component-props)
+
 
 ### withDefaults()
-- https://v3-docs.vuejs-korea.org/guide/typescript/composition-api.html#props-default-values
+
+타입 기반 선언을 사용하면 `props`의 기본값을 선언할 수 없게 됩니다. 기본값 선언(초기화)을 위해 Vue는 `withDefaults` 함수를 제공합니다.
+
+```ts
+export interface Props {
+  msg?: string
+  labels?: string[]
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  msg: 'hello',
+  labels: () => ['one', 'two']
+})
+```
+
+- [공식 문서](https://v3-docs.vuejs-korea.org/guide/typescript/composition-api.html#props-default-values)
+<br>
+
+## 컴포넌트 Emits 작성
+
+`<script setup>` 에서 런타임 선언 또는 타입 선언을 사용하여 `emit` 함수를 입력할 수 있습니다.
+
+```ts
+<script setup lang="ts">
+// runtime
+// 런타임
+const emit = defineEmits(['change', 'update'])
+
+// type-based
+// 타입기반
+const emit = defineEmits<{
+  (e: 'change', id: number): void
+  (e: 'update', value: string): void
+}>()
+</script>
+```
+
+타입 전달인자는 [호출 서명](https://www.typescriptlang.org/docs/handbook/2/functions.html#call-signatures) 이 있는 타입 리터럴이어야 합니다. 타입 리터럴은  `emit` 함수의 타입으로 사용됩니다. 타입 선언은 emit된 이벤트의 타입을 제약 조건을 상세하게 지정할 수 있습니다.
+- [공식 문서](https://v3-docs.vuejs-korea.org/guide/typescript/composition-api.html#typing-component-emits)
+<br>
+
+### `ref()`에 타입 적용
+
+Refs는 초기 값에서 타입을 추론합니다.
+
+```ts
+import { ref } from 'vue'
+
+// 타입 유추: Ref<number>
+const year = ref(2020)
+
+// => TS Error: Type 'string' is not assignable to type 'number'.
+year.value = '2020'
+```
+
+ref의 내부 값에 대해 복잡한 타입을 지정해야 할 수도 있습니다. `Ref` 타입을 사용하여 이를 수행할 수 있습니다.
+```ts
+import { ref } from 'vue'
+import type { Ref } from 'vue'
+
+const year: Ref<string | number> = ref('2020')
+
+year.value = 2020 // ok!
+```
+
+또는 제네릭을 통해 타입을 정의할 수 있습니다.
+```ts
+// 결과 타입: Ref<string | number>
+const year = ref<string | number>('2020')
+
+year.value = 2020 // ok!
+```
+
+제네릭 형식 타입를 지정하지만 초기 값을 생략하면 결과 타입은 `undefined` 를 포함하는 유니온 타입이 됩니다.
+```ts
+// 추론된 타입: Ref<number | undefined>
+const n = ref<number>()
+```
+- [공식 문서](https://v3-docs.vuejs-korea.org/guide/typescript/composition-api.html#typing-ref)
+<br>
+
+### `computed()`에 타입 지정
+
+computed() 는 getter의 반환 값을 기반으로 해당 타입을 추론합니다
+```ts
+import { ref, computed } from 'vue'
+
+const count = ref(0)
+
+// 추론된 타입: ComputedRef<number>
+const double = computed(() => count.value * 2)
+
+// => TS Error: Property 'split' does not exist on type 'number'
+const result = double.value.split('')
+```
+
+제네릭을 통해 명시적으로 타입을 지정할 수도 있습니다.
+```ts
+const double = computed<number>(() => {
+  // type error if this doesn't return a number
+})
+```
+
+<br>
+
+### 이벤트 핸들러에 타입 지정
+
+네이티브 DOM 이벤트를 처리할 때 핸들러에 명확하게 이벤트 타입을 정의하는 것이 유용할 수 있습니다. 다음 예를 살펴보겠습니다.
+```ts
+<script setup lang="ts">
+function handleChange(event) {
+  // `event` 는 어떤(`any`) 타입일수도 있음
+  console.log(event.target.value)
+}
+</script>
+
+<template>
+  <input type="text" @change="handleChange" />
+</template>
+```
+
+타입 어노테이션이 없으면 `event` 전달인자는 암묵적으로 `any` 타입을 갖습니다. `"strict": true` 또는 `"noImplicitAny": true` 가 `tsconfig.json` 에서 사용되는 경우에는 TS 에러가 발생합니다. 따라서 이벤트 핸들러의 전달에 타입을 지정하는 것을 권장합니다.
+```ts
+function handleChange(event: Event) {
+  console.log((event.target as HTMLInputElement).value)
+}
+```
+<br>
+
+### nextTick()
+
+다음 DOM 업데이트 발생을 기다리는 유틸리티입니다.
+
+반응형 상태를 변경한 결과는 동기적으로 DOM에 업데이트되지 않습니다. 그대신, 상태를 얼마나 많이 변경했는지에 관계없이 "다음 틱"까지 버퍼링하여, 각 컴포넌트가 한 번만 업데이트 되었음을 보장합니다.
+
+`nextTick()`은 상태 변경 직후에 DOM 업데이트가 완료될 때까지 대기하는 데 사용할 수 있습니다. 콜백을 인자로 전달하거나, 프로미스(Promise) 반환을 기다릴 수 있습니다.
+
+```ts
+<script setup>
+import { nextTick } from 'vue'
+
+const count = ref(0);
+const increment = async () => {
+	this.count++
+	
+	// 아직 DOM 업데이트되지 않음.
+	console.log(document.getElementById('counter').textContent) // 0
+	
+	await nextTick()
+	// 이제 DOM 업데이트됨.
+	console.log(document.getElementById('counter').textContent) // 1
+}
+</script>
+
+<template>
+  <button id="counter" @click="increment">{{ count }}</button>
+</template>
+```
+- [공식 문서](https://v3-docs.vuejs-korea.org/api/general.html#nexttick)
+<br>
+
+### defineComponent()
+
+타입 추론으로 Vue 컴포넌트를 정의하기 위한 함수입니다.
+
+타입스크립트가 컴포넌트 옵션 내에서 타입을 올바르게 추론할 수 있도록 하려면 [`defineComponent()`](https://v3-docs.vuejs-korea.org/api/general.html#definecomponent) 를 사용하여 컴포넌트를 정의해야 합니다.
+
+또한 `defineComponent()` 는 `<script setup>` 없이 Composition API를 사용할 때 `setup()` 에 전달된 props의 추론을 지원합니다.
+```ts
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  // 타입추론 활성화
+  props: {
+    message: String
+  },
+  setup(props) {
+    props.message // type: string | undefined
+  }
+})
+```
+
+- [공식 문서](https://v3-docs.vuejs-korea.org/guide/typescript/overview.html#definecomponent)
+<br>
 
 ### defineAsyncComponent()
-- https://v3-docs.vuejs-korea.org/api/general.html#defineasynccomponent
 
-### v-cloack
-- https://v3-docs.vuejs-korea.org/api/built-in-directives.html#v-cloak
+거대한 앱에서는 앱을 더 작게 조각내어 나누고, 필요할 때만 서버에서 컴포넌트를 로드해야 할 수 있습니다. 이를 구현하기 위해 [`defineAsyncComponent`](https://v3-docs.vuejs-korea.org/api/general.html#defineasynccomponent) 함수를 제공합니다
+```ts
+import { defineAsyncComponent } from 'vue'
 
-### v-memo
-- https://v3-docs.vuejs-korea.org/api/built-in-directives.html#v-memo
+const AsyncComp = defineAsyncComponent(() => {
+  return new Promise((resolve, reject) => {
+    // ...서버에서 컴포넌트를 로드하는 로직
+    resolve(/* 로드 된 컴포넌트 */)
+  })
+})
+// ... 일반 컴포넌트처럼 `AsyncComp`를 사용 
+```
 
-### v-on.once 사용 예
+위 예제처럼 `defineAsyncComponent`는 Promise를 반환하는 로더 함수를 사용합니다. Promise의 `resolve` 콜백을 호출해 서버에서 가져온 정의되어 있는 컴포넌트를 반환합니다. 로드가 실패했음을 나타내기 위해 `reject(reason)`를 호출할 수도 있습니다.
 
+`import(...)`도 Promise를 반환하므로, 대부분의 경우 `defineAsyncComponent`와 함께 사용합니다.
+```ts
+import { defineAsyncComponent } from 'vue'
 
-----
+const AsyncComp = defineAsyncComponent(() =>
+  import('./components/MyComponent.vue')
+)
+```
 
-# Vuetify
+반환된 `AsyncComp`는 페이지에서 실제로 렌더링될 때만 로더 함수를 호출하는 래퍼 컴포넌트입니다. 또한 모든 props를 내부 컴포넌트에 전달하므로, 기존 구현된 컴포넌트를 비동기 래퍼 컴포넌트로 문제없이 교체하여 지연(lazy) 로드를 구현할 수 있습니다.
 
-### `<v-select>`
-- https://vuetifyjs.com/en/api/v-select/#links
+##### 로딩 및 에러 상태
 
-### `<v-window>`
-- https://vuetifyjs.com/en/components/windows/#account-creation
+비동기 작업에는 필연적으로 로드 및 에러 상태가 포함됩니다. `defineAsyncComponent()`는 고급 옵션을 통해 이러한 상태 처리를 지원합니다:
+```ts
+const AsyncComp = defineAsyncComponent({
+  // 로더 함수
+  loader: () => import('./Foo.vue'),
 
+  // 비동기 컴포넌트가 로드되는 동안 사용할 로딩 컴포넌트입니다.
+  loadingComponent: LoadingComponent,
+  // 로딩 컴포넌트를 표시하기 전에 지연할 시간. 기본값: 200ms
+  delay: 200,
 
-----
+  // 로드 실패 시 사용할 에러 컴포넌트
+  errorComponent: ErrorComponent,
+  // 시간 초과 시, 에러 컴포넌트가 표시됩니다. 기본값: 무한대
+  timeout: 3000
+})
+```
 
+로딩 컴포넌트가 제공되면 내부 컴포넌트가 로딩되는 동안 먼저 표시됩니다. 로딩 컴포넌트가 표시되기 전에 기본 200ms 지연시간이 있습니다. 이는 빠른 네트워크에서 인스턴트 로딩 상태가 너무 빨리 교체되어 깜박임처럼 보일 수 있기 때문입니다.
+
+에러 컴포넌트가 제공되면 로더 함수의 Promise가 reject로 반환될 때 표시됩니다. 요청이 너무 오래 걸릴 때 에러 컴포넌트를 표시하도록 시간 초과를 지정할 수도 있습니다
+
+- [공식 문서](https://v3-docs.vuejs-korea.org/guide/components/async.html#async-components)
+<br>
+-----
 
 # Pinia
+
+피니아는 Vue의 스토어 라이브러리로 컴포넌트/페이지 간에 상태를 공유할 수 있습니다.
+
 ###  defineStore()
 - https://pinia.vuejs.kr/core-concepts/#defining-a-store
 
@@ -201,14 +331,8 @@ export default {
 -----
 
 
-# Nuxt
-### useFetch()
-- https://nuxt.com/docs/api/composables/use-fetch
-
-### useRuntimConfig()
-- https://nuxt.com/docs/api/composables/use-runtime-config
 
 
-### definePageMeta()
-- https://nuxt.com/docs/api/utils/define-page-meta
-
+# 기타
+### v-memo
+- https://v3-docs.vuejs-korea.org/api/built-in-directives.html#v-memo
