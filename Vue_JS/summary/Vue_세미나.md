@@ -163,6 +163,18 @@ export default {
 ### withDefaults()
 - https://v3-docs.vuejs-korea.org/guide/typescript/composition-api.html#props-default-values
 
+### defineAsyncComponent()
+- https://v3-docs.vuejs-korea.org/api/general.html#defineasynccomponent
+
+### v-cloack
+- https://v3-docs.vuejs-korea.org/api/built-in-directives.html#v-cloak
+
+### v-memo
+- https://v3-docs.vuejs-korea.org/api/built-in-directives.html#v-memo
+
+### v-on.once 사용 예
+
+
 ----
 
 # Vuetify
@@ -181,6 +193,10 @@ export default {
 ###  defineStore()
 - https://pinia.vuejs.kr/core-concepts/#defining-a-store
 
+### Composables
+- https://pinia.vuejs.kr/cookbook/composables.html
+
+
 
 -----
 
@@ -191,4 +207,8 @@ export default {
 
 ### useRuntimConfig()
 - https://nuxt.com/docs/api/composables/use-runtime-config
+
+
+### definePageMeta()
+- https://nuxt.com/docs/api/utils/define-page-meta
 
