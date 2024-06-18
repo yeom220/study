@@ -185,7 +185,7 @@ const double = computed<number>(() => {
 네이티브 DOM 이벤트를 처리할 때 핸들러에 명확하게 이벤트 타입을 정의하는 것이 유용할 수 있습니다. 다음 예를 살펴보겠습니다.
 ```ts
 <script setup lang="ts">
-function handleChange(event) {
+const handleChange = (event) => {
   // `event` 는 어떤(`any`) 타입일수도 있음
   console.log(event.target.value)
 }
@@ -564,10 +564,40 @@ interface UserInfo {
 
 [Composables](https://vuejs.org/guide/reusability/composables.html#composables)은 **상태 로직을 캡슐화하고 재사용**하기 위해 Vue Composition API를 활용하는 함수입니다. 직접 작성하거나 [외부 라이브러리](https://vueuse.org/)를 사용하든지 상관없이, Pinia 스토어에서 Composables의 강력한 기능을 완전히 활용할 수 있습니다.
 
-- [공식 문서](https://pinia.vuejs.kr/cookbook/composables.html)
------
-<br>
+pinia에서 제공하는 Composable 예시 입니다.
+- [useLocalStorage](https://vueuse.org/core/useLocalStorage/)
+- [useAsyncState](https://vueuse.org/core/useAsyncState/)
+- [useMediaControls](https://vueuse.org/core/useMediaControls/)
+- [useMemoryInfo](https://vueuse.org/core/useMemory/)
+- [useEyeDropper](https://vueuse.org/core/useEyeDropper/)
 
-# 기타
-### v-memo
-- https://v3-docs.vuejs-korea.org/api/built-in-directives.html#v-memo
+Composable 사용 예시
+```ts
+import { defineStore, skipHydrate } from 'pinia'
+import { useMediaControls } from '@vueuse/core'
+
+export const useVideoPlayer = defineStore('video', () => {
+  // 이 요소를 직접 노출(반환)하지 않습니다
+  const videoElement = ref<HTMLVideoElement>()
+  const src = ref('/data/video.mp4')
+  const { playing, volume, currentTime, togglePictureInPicture } =
+    useMediaControls(videoElement, { src })
+
+  function loadVideo(element: HTMLVideoElement, src: string) {
+    videoElement.value = element
+    src.value = src
+  }
+
+  return {
+    src,
+    playing,
+    volume,
+    currentTime,
+
+    loadVideo,
+    togglePictureInPicture,
+  }
+})
+```
+
+- [공식 문서](https://pinia.vuejs.kr/cookbook/composables.html)
