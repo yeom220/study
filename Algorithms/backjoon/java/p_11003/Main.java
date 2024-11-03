@@ -3,11 +3,15 @@ package p_11003;
 import java.io.*;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.Scanner;
 import java.util.StringTokenizer;
 
 public class Main {
+    public static final Scanner scanner = new Scanner(System.in);
+
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        // 출력을 버퍼에 넣고 한 번에 출력하기 위해 BufferedWriter 사용
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
         StringTokenizer st = new StringTokenizer(br.readLine());
         int N = Integer.parseInt(st.nextToken());
