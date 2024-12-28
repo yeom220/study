@@ -17,6 +17,6 @@ for c in msg:
     q.put(c)
 
 print('출력: ', end='')
-while q.qsize() > 0:
+while not q.empty():
     print(q.get(), end='')
 print()

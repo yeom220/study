@@ -31,6 +31,13 @@ class ArrayStack:
 
     def size(self):
         return self.top + 1
+    
+    def display(self):
+        point = 0
+        while point <= self.top:
+            print(self.array[point], end=' ')
+            point += 1
+        print()
 
 
 if __name__ == '__main__':
@@ -40,6 +47,7 @@ if __name__ == '__main__':
     for c in msg:
         s.push(c)
 
+    s.display()
     print('출력: ', end='')
     while not s.is_empty():
         print(s.pop(), end='')
