@@ -194,7 +194,7 @@ INFO  [alembic.context] Running upgrade 1975ea83b712 -> ae1027a6acf
 
 #### 상대적 마이그레이션 적용
 
->`alembic upgrade head` 명령어는 가장 최신 스크립트까지 적용하는 명령어 입니다.
+>`alembic upgrade head` 명령어는 최신 스크립트까지 적용하는 명령어 입니다.
 >만약 현재 `revision` 에서 2개의 마이그레이션 스크립트만 적용하고 싶다면 아래와 같이 할 수 있습니다.
 
 ```bash
@@ -220,7 +220,7 @@ INFO  [alembic.context] Running downgrade 1975ea83b712 -> None
 ---
 # 자동 생성 마이그레이션
 
->Alembic 은 데이터베이스의 테이블과 ORM 스키마(테이블 메타데이터)를 비교하여 마이그레이션 스크립트를 생성할 수 있습니다.
+>Alembic 은 데이터베이스의 테이블과 ORM 모델(테이블 메타데이터)을 비교하여 마이그레이션 스크립트를 생성할 수 있습니다.
 >자동 생성을 사용하려면 `env.py` 를 수정하여 마이그레이션을 생성할 테이블의 메타데이터를 지정해야 합니다.
 
 ```python
@@ -277,4 +277,5 @@ def downgrade():
 
 [자동 마이그레이션 문서](https://alembic.sqlalchemy.org/en/latest/autogenerate.html#auto-generating-migrations)
 
-
+---
+[Alembic 공식 문서](https://alembic.sqlalchemy.org/en/latest/index.html)
