@@ -52,7 +52,7 @@
 - 실행 애플리케이션
 
 ---
-# Docker Hub
+# [Docker Hub](https://hub.docker.com/)
 
 >Docker 이미지를 저장하고 배포할 수 있는 클라우드 기반 레지스트리 서비스.
 >개발 및 배포 프로세스를 단순화하고, 컨테이너화된 애플리케이션을 공유하기 위해 사용된다.
@@ -144,9 +144,142 @@ $ docker run -p 8080:80 {Image ID}
 ---
 # Docker 이미지 특징
 
-### 스냅샷(읽기전용)
+### 블루프린트(읽기전용)
 
 >소스코드를 수정 후 컨테이너를 다시 실행해도 변경사항은 적용되지 않는다.
 >그 이유는 이미지는 `build` 시점에 `Dockerfile` 에 명시된 대로 소스코드를 컨테이너 내부로 복사하기 때문입니다.
 >즉, `build` 이후에 소스를 수정하여도 이미지에 저장된 코드는 변경되지 않기 때문에 적용되지 않습니다.
 
+### 레이어 기반 아키텍처
+
+>Docker는 이미지를 생성할 때 각각의 명령을 이미지로 만들어 쌓는다. (레이어)
+>Docker는 이미지를 재생성할 때 각 명령(이미지 레이어)을 확인하여 변경사항이 없는 경우 기존 이미지 레이어를 사용(캐싱)하여 이미지 재생성을 최적화 한다.
+
+---
+# 컨테이너와 상호작용(인터렉티브 모드)
+
+>입력 받은 두 숫자 사이의 랜덤 숫자를 출력하는 파이썬 코드를 Docker 이미지
+
+```dockerfile
+FROM python
+
+WORKDIR /app
+
+COPY . /app/
+
+CMD ["python", "rng.py"]
+```
+
+>컨테이너는 기본적으로 격리된 환경이기 때문에 상호작용이 되지 않는다.
+>상호 작용을 위해서는 컨테이너 생성시에 상호작용을 할 수 있게 옵션을 주어야 한다.
+
+```bash
+$ docker run -it {Image ID}
+```
+
+- **-i**
+	- `--interactive` 옵션의 약자로 컨테이너에 입력이 가능하도록 하는 옵션(**STDIN**)
+- **-t**
+	- `--tty` 옵션의 약자로 입력을 위한 터미널을 생성
+
+>위의 파이썬 애플리케이션은 출력 후에 종료되기 때문에 컨테이너도 같이 종료된다.
+>종료된 컨테이너를 다시 실행하는 명령어는 아래와 같다.
+
+```bash
+$ docker start -a -t {Container ID}
+```
+
+- **a**
+	- `--attach` 옵션 약자로 표준출력(**STDOUT**)과 표준에러(**STDERR**) 출력
+
+---
+# 컨테이너 및 이미지 제거
+
+>컨테이너 제거
+
+```bash
+$ docker rm {Container ID}
+```
+
+- **rm**
+	- 컨테이너 제거 명령어로 실행 중지된 컨테이너만 제거 가능
+	- 컨테이너 생성시 `--rm` 옵션으로 실행 중지되면 자동으로 제거도 가능
+		- `docker run --rm {Container ID}`
+
+>중지된 컨테이너 모두 제거
+
+```bash
+$ docker container prune
+```
+
+- **prune**
+	- 중지된 컨테이너 모두 제거
+
+>이미지 제거
+
+```bash
+$ docker rmi {Image ID}
+```
+
+- **rmi**
+	- 이미지 제거 명령어로 사용되지 않은 이미지만 제거 가능
+	- `Image ID` 로 생성된 컨테이너가 있는 경우 제거 불가
+
+>사용되지 않은 이미지 모두 제거
+
+```bash
+$ docker image prune
+```
+
+- **prune**
+	- `tag` 가 없는 이미지 모두 제거
+
+---
+# 컨테이너 파일 복사
+
+>호스트 -> 컨테이너로 파일 복사
+
+```bash
+$ docker cp directory/. {Container ID}:/directory
+```
+
+- **cp**
+	- 파일 복사 명령어
+	- 중지된 컨테이너도 복사 가능
+- **directory/.**
+	- 복사할 파일 경로(호스트)
+	- `directory/.` 은 `directory` 에 있는 모든 파일을 복사
+	- 특정 파일만 복사할 경우 `directory/{File Name}` 
+- **{Container ID}:/directory**
+	- 복사한 파일을 생성할 경로(컨테이너)
+	- `:/directory` 는 해당 컨테이너의 `/directory` 경로에 복사된 파일 생성
+
+>컨테이너 -> 호스트로 파일 복사
+
+```bash
+$ docker cp {Container ID}:/directory .
+```
+
+- **{Container ID}:/directory**
+	- 복사할 파일 경로(컨테이너)
+	- `:/directory` 은 `directory` 디렉토리 및 하위 파일 복사
+	- 특정 파일만 복사할 경우 `:/directory/{File Name}`
+- **.**
+	- 복사한 파일을 생성할 경로(호스트)
+
+---
+# 이미지 태그
+
+>이미지는 `name` 과 `tag` 로 구성된다.
+>`name` 은 이미지 그룹이고,  `tag` 는 해당 이미지의 특정 버전이나 타입 등을 나타낸다.
+
+```bash
+$ docker run node:23-alpine
+```
+
+- **node:23-alpine**
+	- `node` 는 `name`
+	- `:23-alpine` 은 `tag` 로 노드 23 버전의 알파인(경량화된 리눅스) 이미지를 지정
+	- `name` 만 지정하는 경우는 `node:latest` 와 동일 (최신 버전)
+
+---
