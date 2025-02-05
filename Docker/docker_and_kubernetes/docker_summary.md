@@ -283,3 +283,72 @@ $ docker run node:23-alpine
 	- `name` 만 지정하는 경우는 `node:latest` 와 동일 (최신 버전)
 
 ---
+# 볼륨(Volumes)
+
+>볼륨은 도커가 설치된 호스트 머신에 있는 디렉토리로서, 도커 컨테이너 내부의 디렉토리에 매핑 된다.
+>컨테이너는 호스트 머신과 다른 독립적인 파일 시스템을 사용한다. (격리)
+>컨테이너에서 생성된 파일들은 호스트 머신에 저장되지 않는다.
+>따라서 컨테이너가 제거되면 해당 파일들도 같이 제거된다.
+>도커 볼륨은 컨테이너가 제거되어도 유지해야 할 파일들을 유지할 수 있도록 한다.
+
+```bash
+$ docker run -v {Volume name}:{Container path} {Image ID}
+```
+
+- **-v**
+	- `--volume` 약자로 도커 볼륨을 생성하는 명령어
+	- `{볼륨명}:{볼륨으로 만들 디렉토리}` 를 실행하면 해당 디렉토리의 볼륨이 생성된다.
+
+>도커 볼륨 확인
+
+```bash
+$ docker volume ls
+```
+# 볼륨 종류
+
+### 익명 볼륨(Anonymous Volumes)
+##### 특징
+- 각각의 컨테이너마다 생성 된다.
+	- 해당 컨테이너만 사용 가능한 볼륨
+- ``--rm`` 옵션으로 컨테이너 생성시 컨테이너가 중지되면 컨테이너와 같이 볼륨도 삭제된다.
+	- **`--rm` 옵션 없이 컨테이너 생성, 중지, 제거할 경우 볼륨 제거되지 않는다.**
+- 컨테이너 간의 볼륨 공유가 불가능하다.
+- 볼륨을 재사용 할 수 없다.
+	- 같은 이미지로 컨테이너를 생성하더라도 볼륨은 공유되지 않는다.
+
+```bash
+$ docker run -v {Container path} {Image ID}
+```
+
+### 명명된 볼륨(Named Volumes)
+##### 특징
+- 일반적인 볼륨
+- 도커 CLI 명령어로 제거해야 한다.
+- 컨테이너 간의 볼륨 공유가 가능하다.
+- 볼륨 재사용이 가능하다.
+
+```bash
+$ docker run -v {Volume name}:{Container path} {Image ID}
+```
+
+### 바인드 마운트(Bind Mounts)
+##### 특징
+- 호스트 머신 파일 시스템과 연결된다.
+- 호스트 머신 파일 시스템에서 삭제해야 한다. (도커로 제거 불가능)
+- 컨테이너 간의 볼륨 공유가 가능하다.
+- 볼륨 재사용이 가능하다.
+
+```bash
+$ docker run -v {Host Absolute path}:{Container path} {Image ID}
+```
+
+>볼륨 사용 예시
+```bash
+$ docker run -d --rm --name feedback-app -p 3000:80 \
+> -v "/root/ex:/app" \
+> -v /app/node_modules \
+> -v feedback:/app/feedback
+> {Image ID}
+```
+
+---
