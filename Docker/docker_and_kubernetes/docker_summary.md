@@ -299,15 +299,11 @@ $ docker run -v {Volume name}:{Container path} {Image ID}
 	- `--volume` 약자로 도커 볼륨을 생성하는 명령어
 	- `{볼륨명}:{볼륨으로 만들 디렉토리}` 를 실행하면 해당 디렉토리의 볼륨이 생성된다.
 
->도커 볼륨 확인
-
-```bash
-$ docker volume ls
-```
-# 볼륨 종류
+## 볼륨 종류
 
 ### 익명 볼륨(Anonymous Volumes)
-##### 특징
+
+**특징**
 - 각각의 컨테이너마다 생성 된다.
 	- 해당 컨테이너만 사용 가능한 볼륨
 - ``--rm`` 옵션으로 컨테이너 생성시 컨테이너가 중지되면 컨테이너와 같이 볼륨도 삭제된다.
@@ -321,7 +317,8 @@ $ docker run -v {Container path} {Image ID}
 ```
 
 ### 명명된 볼륨(Named Volumes)
-##### 특징
+
+**특징**
 - 일반적인 볼륨
 - 도커 CLI 명령어로 제거해야 한다.
 - 컨테이너 간의 볼륨 공유가 가능하다.
@@ -332,7 +329,8 @@ $ docker run -v {Volume name}:{Container path} {Image ID}
 ```
 
 ### 바인드 마운트(Bind Mounts)
-##### 특징
+
+**특징**
 - 호스트 머신 파일 시스템과 연결된다.
 - 호스트 머신 파일 시스템에서 삭제해야 한다. (도커로 제거 불가능)
 - 컨테이너 간의 볼륨 공유가 가능하다.
@@ -345,10 +343,191 @@ $ docker run -v {Host Absolute path}:{Container path} {Image ID}
 >볼륨 사용 예시
 ```bash
 $ docker run -d --rm --name feedback-app -p 3000:80 \
-> -v "/root/ex:/app" \
+> -v "/root/e-vol:/app" \
 > -v /app/node_modules \
 > -v feedback:/app/feedback
+> -v /app/temp \
 > {Image ID}
 ```
+
+### 읽기 전용(Read only) 볼륨
+
+>읽기 전용 볼륨은 컨테이너에서 수정할 수 없는 볼륨이다.
+>컨테이너 내부에서 수정하면 안되는 파일(ex: 호스트 머신 파일)을 가진 볼륨이 있는 경우 `:ro` 를 사용하여 지정할 수 있다.
+
+```bash
+$ docker run -v {Host Absolute path}:{Container path}:ro {Image ID}
+```
+- 컨테이너에서는 `{Container path}` 내부 파일을 수정할 수 없다.
+- 호스트 머신에서는 `{Host Absolute path}` 내부 파일을 수정할 수 있다.
+
+## 볼륨 관리하기
+
+>도커 볼륨은 Docker CLI 를 통해 관리할 수 있다.
+
+**조회**
+```bash
+$ docker volume ls
+```
+
+**생성**
+```bash
+$ docker volume create {Volume name}
+```
+
+**제거**
+```bash
+$ docker volume rm {Volume name}
+```
+- 컨테이너에서 사용중인 볼륨은 제거 불가
+
+**상세정보 조회**
+```bash
+docker volume inspect {Volume name}
+```
+
+---
+# `COPY` 제외 파일 설정 방법
+
+>`Dockerfile` 의 `COPY . .` 명령어는 현재 디렉토리의 모든 파일을 복사한다.
+>만약 호스트 머신에 `node_modules` 가 있다면 `npm install` 로 생성된 모듈 디렉토리가 아닌 호스트 머신의 디렉토리로 덮어쓰기가 된다.
+>호스트 머신의 `node_modules` 가 오래전 생성된 것일 경우 모듈이 다운로드 되지 않는 이슈가 발생할 것이다.
+>이 문제 해결을 위해 도커는 `COPY` 에서 제외할 수 있는 기능을 제공한다.
+
+### `.dockerignore`
+
+>`.gitignore` 처럼 해당 파일에 작성된 디렉토리(파일)는 `COPY` 에서 제외된다.
+>도커 이미지(애플리케이션 실행)에 불필요한 디렉토리(파일)를 작성한다.
+>`.dockerignore` 파일은 `Dockerfile` 과 같은 디렉토리에 있어야 한다.
+
+```dockerignore
+node_modules
+dist
+.git
+Dockerfile
+```
+- **node_modules**
+	- `npm install` 로 생성된 모듈 파일 디렉토리
+- **dist**
+	- `npm run build` 로 생성된 애플리케이션 정적 파일 디렉토리
+- **Dockerfile**
+	- `Dockerfile` 은 기본적으로 제외되지만, 명시적으로 작성
+
+---
+# 환경 변수
+
+>`Dockerfile` 및 애플리케이션 코드에서 사용 가능한 환경변수를 설정할 수 있다.
+>`Dockerfile` 에서 지정한 환경 변수 값을 컨테이너 생성할 때 변경할 수 있다.
+
+### Dockerfile 환경 변수 사용
+```dockerfile
+FROM node:14
+
+WORKDIR /app
+
+COPY package.json .
+
+RUN npm install
+
+COPY . .
+
+# VOLUME [ "/app/node_modules" ]
+
+ENV PORT 80
+
+EXPOSE $PORT
+
+CMD [ "node", "server.js" ]
+```
+
+- **ENV PORT 80**
+	- `ENV` 는 환경 변수 지정 명령어
+	- `PORT` 는 환경 변수명
+	- `80` 은 기본값으로 사용됨
+- **EXPOSE $PORT**
+	- 환경 변수는 변수명 앞에 `$` 를 붙여서 사용
+
+
+### 런타임 환경 변수 Override(변경)
+
+##### CLI(커맨드) 방법
+```bash
+$ docker run -d --rm --name feedback-app -p 3000:8000 \
+> -e PORT=8000 \
+> -v "/root/e-env:/app" \
+> -v /app/node_modules \
+> -v feedback:/app/feedback \
+> -v /app/temp \
+> {Image ID}
+```
+- **-e PORT=8000**
+	- `-e` 는 `--env` 의 약자로 환경 변수 설정 옵션
+	- `PORT=8000` 은 `PORT` 라는 환경 변수에 `8000` 대입
+
+##### 환경 변수 파일 방법
+
+>`.env` 파일
+```env
+PORT=8000
+```
+
+>`.env` 적용 방법
+```bash
+$ docker run -d --rm --name feedback-app -p 3000:8000 \
+> --env-file ./.env \
+> -v "/root/e-env:/app" \
+> -v /app/node_modules \
+> -v feedback:/app/feedback \
+> -v /app/temp \
+> {Image ID}
+```
+- **--env-file ./.env**
+	- `./.env` 는 현재 터미널 위치에 `.env` 파일이 있는 경우 (상대 경로)
+	- `/root/e-env/.env` 같이 절대 경로도 사용 가능
+
+---
+# 빌드 인수(Arguments)
+
+>`Dockerfile`에서 사용 가능한 변수이다. 
+>`CMD` 커맨드와 애플리케이션 코드에서는 사용할 수 없다.
+>이미지를 빌드할 때(`docker build`) 값을 Override(변경) 할 수 있다.
+
+### Dockerfile에 인수 선언
+```dockerfile
+FROM node:14
+
+WORKDIR /app
+
+COPY package.json .
+
+RUN npm install
+
+COPY . .
+
+# VOLUME [ "/app/node_modules" ]
+
+ARG DEFAULT_PORT=80
+
+ENV PORT=$DEFAULT_PORT
+
+ENV PORT 80
+
+EXPOSE $PORT
+
+CMD [ "node", "server.js" ]
+```
+- **ARG DEFAULT_PORT=80**
+	- `ARG`: 빌드 인수 선언 명령어
+	- `DEFAULT_PORT=80`: 변수명과 기본값
+- **ENV PORT=$DEFAULT_PORT**
+	- `$DEFAULT_PORT`: `DEFAULT_PORT` 변수 참조
+
+### 런타임 빌드 인수 Override(변경)
+```bash
+$ docker build -t feedback:dev --build-arg DEFAULT_PORT=8000 .
+```
+- **--build-arg DEFAULT_PORT=8000**
+	- `--build-arg`: 빌드 인수 전달 옵션
+	- `DEFAULT_PORT=8000`: `DEFAULT_PORT` 변수 값을 `8000`으로 변경
 
 ---
