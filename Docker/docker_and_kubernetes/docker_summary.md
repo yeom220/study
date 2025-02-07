@@ -531,3 +531,106 @@ $ docker build -t feedback:dev --build-arg DEFAULT_PORT=8000 .
 	- `DEFAULT_PORT=8000`: `DEFAULT_PORT` 변수 값을 `8000`으로 변경
 
 ---
+# 네트워크(Network)
+
+>도커 컨테이너의 통신은 3가지로 분류할 수 있다.
+>1. 컨테이너와 외부(예: 웹) 통신
+>2. 컨테이너와 호스트 머신 통신
+>3. 컨테이너와 컨테이너의 통신
+
+### 컨테이너 <-> 웹 통신
+
+>컨테이너는 기본적으로 격리되어 있지만 외부(예: 웹)와의 통신은 가능하다.
+>그 이유는 웹 애플리케이션 컨테이너를 생성할 때 `-p` 옵션을 통해 호스트 머신의 포트와 매핑되기 때문이다.
+
+**Node 애플리케이션 API 통신 메서드**
+```js
+app.get('/movies', async (req, res) => {
+    try {
+        const response = await axios.get('https://swapi.dev/api/films');
+        res.status(200).json({ movies: response.data });
+    } catch (error) {
+        res.status(500).json({ message: 'Something went wrong.' });
+    }
+});
+```
+- `https://swapi.dev/api/films`에서 영화 목록을 요청하는 메서드
+
+### 컨테이너 <-> 호스트 머신 통신
+
+>컨테이너와 호스트 머신이 통신하기 위해서는 **특수한 예약어(host)** 가 필요하다.
+>도커는 `host.docker.internal`를 호스트 머신의 IP로 변환한다.
+
+**Mongo DB 접속 메서드**
+```js
+mongoose.connect(
+    // 'mongodb://localhost:27017/swfavorites',
+    'mongodb://host.docker.internal:27017/swfavorites',
+    { useNewUrlParser: true },
+    (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            app.listen(3000);
+        }
+    }
+);
+```
+- **mongoose.connect()**
+	- Mongo DB 접속 메서드
+- **mongodb://localhost:27017/swfavorites**
+	- `localhost:27017`의 `swfavorites` DB 커넥션을 요청한다.
+	- `localhost:27017` 은 컨테이너의 **27017** 포트를 가리키고, 컨테이너에는 Mongo DB가 없기 때문에 에러가 발생한다.
+- **mongodb://host.docker.internal:27017/swfavorites**
+	- 도커는 `host.docker.internal` 을 호스트 머신의 IP로 변환한다.
+	- **27017** 포트 MongoDB의 `swfavorites` DB 커넥션을 요청한다.
+
+### 컨테이너 <-> 컨테이너 통신 (도커 네트워크)
+
+>격리된 컨테이너끼리 통신하기 위해 도커는 docker 네트워크를 지원한다.
+>아래는 웹 애플리케이션 컨테이너와 Mongo DB 컨테이너를 도커 네트워크를 사용하여 통신하는 시나리오이다.
+
+##### Movie App Container <-> MongoDB Container 시나리오
+
+**1. Docker Network 생성**
+```bash
+$ docker network create movie-net
+```
+- **network create movie-net**
+	- `movie-net` 네트워크 생성
+
+**2. MongoDB Container 생성 및 네트워크 연결**
+```bash
+$ docker run -d --name mongodb-container --network movie-net mongo
+```
+- **--network movie-net**
+	- `mongodb` 컨테이너를 `movie-net` 네트워크에 연결
+
+**3. Movie App 코드에 MongoDB 접속 정보 작성**
+```js
+mongoose.connect(
+    'mongodb://mongodb-container:27017/swfavorites',
+    { useNewUrlParser: true },
+    (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            app.listen(3000);
+        }
+    }
+);
+```
+- **mongodb://mongodb-container:27017**
+	- `mongodb-container`: 2번에서 생성한 Mongo DB 컨테이너 이름
+
+**4. Movie App 이미지 생성**
+```bash
+$ docker build -t movie .
+```
+
+**5. Movie App Container 생성 및 네트워크 연결**
+```bash
+$ docker run -d --rm -p 3000:3000 --name movie-app --network movie-net movie
+```
+
+---
