@@ -311,6 +311,7 @@ $ docker run -v {Volume name}:{Container path} {Image ID}
 - 컨테이너 간의 볼륨 공유가 불가능하다.
 - 볼륨을 재사용 할 수 없다.
 	- 같은 이미지로 컨테이너를 생성하더라도 볼륨은 공유되지 않는다.
+- **`Dockerfile` 에서 `VOLUME ["{Container Path}"]`으로 생성 가능하다.**
 
 ```bash
 $ docker run -v {Container path} {Image ID}
@@ -360,6 +361,15 @@ $ docker run -v {Host Absolute path}:{Container path}:ro {Image ID}
 ```
 - 컨테이너에서는 `{Container path}` 내부 파일을 수정할 수 없다.
 - 호스트 머신에서는 `{Host Absolute path}` 내부 파일을 수정할 수 있다.
+
+### 볼륨(`-v`)은 {Container path}가 구체적일수록 우선순위를 갖는다
+
+>소스코드를 바인드 마운트를 활용하여 실시간 적용하고 싶은 경우는 아래와 같이 컨테이너를 생성할 수 있다.
+>`$ docker run -v /source:/app {Image ID}`
+>하지만 만약 노드처럼 런타임으로 모듈을 설치하고 해당 모듈이 프로젝트 디렉토리(ex: `/app/node_modules`)에 생성되는 경우 **바인드 마운트에 의해 `/app/node_modules`는 덮어씌여져서** 애플리케이션 실행에 오류가 발생한다.
+>이런 경우 구체적 경로가 더 우선 되는 볼륨의 특성을 사용하여 `node_modules` 디렉토리를 **Override** 한다.
+>`$ docker run -v /source:/app -v /app:node_modules {Image ID}`
+
 
 ## 볼륨 관리하기
 
@@ -655,3 +665,125 @@ $ docker run -d --rm -p 3000:3000 --name movie-app --network movie-net movie
 	- 모든 종류의 동작과 기능을 추가할 수 있는 타사 플러그인을 설치할 수 있다.
 
 ---
+# 도커 기반 Goals App 애플리케이션 생성
+
+>도커 이미지, 컨테이너, 볼륨, 네트워크를 활용하여 **Goals App** 애플리케이션을 도커로 구현해본다.
+>총 3개의 컨테이너와 도커 네트워크를 사용하여 **Goals App** 애플리케이션을 실행한다.
+>1. 데이터베이스 컨테이너 (`Mongo DB`)
+>2. 백엔드 (`Express API`)
+>3. 프론트엔드 컨테이너 (`React`)
+
+
+### Mongo DB 컨테이너 생성
+
+>**컨테이너 요구 사항**
+>- `mongo` 공식 이미지 사용.
+>- 컨테이너 이름은 `mongodb`.
+>- `"goals-net"` 도커 네트워크 사용.
+>- 컨테이너 중지 시 자동 삭제.
+>- DB 데이터 유지되도록 설정 (`Mongo DB` 컨테이너의 데이터 저장 위치는 `/data/db`).
+
+###### 네트워크 생성 명령어
+```bash
+$ docker network create goals-net
+```
+
+###### Mongo DB 컨테이너 생성 명령어
+```bash
+$ docker run -d --name mongodb --network goals-net --rm -v data:/data/db mongo
+```
+
+
+### 백엔드 컨테이너 생성
+
+>**컨테이너 생성 요구 사항**
+>- `node:14` 공식 이미지 사용.
+>- 컨테이너 이름은 `goals-backend`.
+>- `goals-net` 도커 네트워크 사용.
+>- 컨테이너 중지 시 자동 삭제.
+>- **80** 포트 사용.
+>- 환경 변수(`DB_URL`, `PORT`) 사용.
+>	- `DB_URL`: **Mongo DB 컨테이너 접속 URL**
+>	- `PORT`: 80
+>- 애플리케이션 실행 명령어는 `node app.js`
+>- `.env` 파일 사용.
+
+###### Dockerfile
+```dockerfile
+FROM node:14
+
+WORKDIR /app
+
+COPY package.json /app/
+
+RUN npm install
+
+COPY . /app/
+
+ENV DB_URL="mongodb"
+
+ENV PORT=80
+
+EXPOSE $PORT
+
+CMD ["node", "app.js"]
+```
+
+###### .env
+```env
+DB_URL=mongodb
+PORT=80
+```
+
+###### 이미지 빌드 명령어
+```bash
+$ docker build -t goals-node .
+```
+
+###### 백엔드 컨테이너 생성 명령어
+```bash
+$ docker run -d --name goals-backend --network goals-net --rm -p 80:80 --env-file ./.env goals-node
+```
+
+
+### 프론트엔드 컨테이너 생성
+
+>**컨테이너 생성 요구 사항**
+>- `node:14` 공식 이미지 사용.
+>- 컨테이너 이름은 `goals-frontend`.
+>- 컨테이너 중지 시 자동 삭제.
+>- 이미지 재빌드 없이 소스코드 수정 사항 반영.
+>- **3000** 포트 사용.
+>- 애플리케이션 실행 명령어는 `npm start`
+
+###### Dockerfile
+```dockerfile
+FROM node:14
+
+WORKDIR /app
+
+COPY package.json /app/
+
+RUN npm install
+
+COPY . .
+
+VOLUME ["/app/node_modules"]
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
+```
+
+###### 이미지 빌드 명령어
+```bash
+$ docker build -t goals-react .
+```
+
+###### 프론트엔드 컨테이너 생성 명령어
+```bash
+$ docker run -d --name goals-frontend --rm -v /goals/frontend:/app -p 3000:3000 goals-react
+```
+
+---
+# 끝
