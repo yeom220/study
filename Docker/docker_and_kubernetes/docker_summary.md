@@ -665,16 +665,16 @@ $ docker run -d --rm -p 3000:3000 --name movie-app --network movie-net movie
 	- 모든 종류의 동작과 기능을 추가할 수 있는 타사 플러그인을 설치할 수 있다.
 
 ---
-# 도커 기반 Goals App 애플리케이션 생성
+# Docker로 다중 컨테이너 애플리케이션 구축
 
->도커 이미지, 컨테이너, 볼륨, 네트워크를 활용하여 **Goals App** 애플리케이션을 도커로 구현해본다.
+>도커 이미지, 컨테이너, 볼륨, 네트워크를 활용하여 **Goals App** 애플리케이션을 구현해본다.
 >총 3개의 컨테이너와 도커 네트워크를 사용하여 **Goals App** 애플리케이션을 실행한다.
 >1. 데이터베이스 컨테이너 (`Mongo DB`)
->2. 백엔드 (`Express API`)
+>2. 백엔드 컨테이너(`Express API`)
 >3. 프론트엔드 컨테이너 (`React`)
 
 
-### Mongo DB 컨테이너 생성
+### 데이터베이스 컨테이너 생성
 
 >**컨테이너 요구 사항**
 >- `mongo` 공식 이미지 사용.
@@ -782,7 +782,7 @@ $ docker build -t goals-react .
 
 ###### 프론트엔드 컨테이너 생성 명령어
 ```bash
-$ docker run -d --name goals-frontend --rm -v /goals/frontend:/app -p 3000:3000 goals-react
+$ docker run -d --name goals-frontend --rm -v /goals/frontend/src:/app/src -p 3000:3000 goals-react
 ```
 
 ---
