@@ -633,4 +633,25 @@ $ docker build -t movie .
 $ docker run -d --rm -p 3000:3000 --name movie-app --network movie-net movie
 ```
 
+### Docker 네트워크 드라이버
+
+>`Docker Networks` 는 네트워크 동작에 영향을 미치는 다양한 종류의 **드라이버**를 지원한다.
+>드라이버는 네트워크 생성 시 `--driver` 옵션을 통해 설정할 수 있다.
+
+- **bridge(default)**
+	- 컨테이나가 동일한 네트워크에 있는 경우, 컨테이너 이름을 IP로 변환해준다.
+	- 기본 드라이버(`--driver` 옵션 생략 시 적용)
+- **host**
+	- Standalone 컨테이너의 경우, 컨테이너와 호스트 시스템 간의 격리가 제거된다. (localhost를 네트워크로 공유)
+- **overlay**
+	- 여러 Docker 데몬(서로 다른 머신에서 실행되는 Docker)이 서로 연결될 수 있다.
+	- 여러 컨테이너를 연결하는 거의 사용되지 않는 방법인 Swarm 모드에서만 작동된다.
+- **macvlan**
+	- 컨테이너에 커스텀 MAC 주소를 설정할 수 있다.
+	- MAC 주소를 통신하는데 사용할 수 있다.
+- **none**
+	- 모든 네트워킹이 비활성화
+- **third-party plugin**
+	- 모든 종류의 동작과 기능을 추가할 수 있는 타사 플러그인을 설치할 수 있다.
+
 ---
