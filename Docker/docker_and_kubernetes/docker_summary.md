@@ -1,8 +1,10 @@
 # 도커가 필요한 이유
 
-1. 개발 환경과 운영 환경의 의존성(환경) 문제를 해결
-2. 각 팀과 회사마다 다른 개발 환경에서 발생하는 의존성 문제 해결
+1. 개발 환경과 운영 환경의 의존성(환경) 차이 문제를 해결
+2. 각 팀과 회사마다 다른 개발 환경에서 발생하는 의존성 차이 문제 해결
 3. 각 프로젝트마다 다른 툴과 버전에서 발생하는 충돌 문제 해결
+4. 공유, 재구축, 배포가 간단함
+5. **단일 구성 파일로 공유 가능**
 
 ---
 # 버츄얼 머신의 장단점
@@ -10,7 +12,7 @@
 ### 장점
 
 - 분리(독립)된 환경
-- 각각 환경 구성이 가능
+- 각각 격리된 환경 구성 가능
 - 환경 구성의 안정적인 공유 및 재생산 가능
 
 ### 단점
@@ -18,20 +20,22 @@
 - 새로운 버츄얼 머신을 설치할 때마다 중복 복제로 리소스를 낭비
 - 성능이 느려질 수 있음
 - 재생산 및 공유가 가능해도 원하는 모든 시스템에 버츄얼 머신을 설정하고 동일한 환경을 구성해야 함
-	- **공유할 수 있는 단일 구성 파일 X**
+- **단일 구성 파일로 공유 불가능**
 
 ---
 # 컨테이너 vs 버츄얼 머신
 
 ### 컨테이너
-- 컨테이너는 최소한의 OS 구성으로 빠르며, 적은 디스크를 점유한다
-- 공유, 재구축, 배포가 간단하다
-- **전체 머신(OS) 환경 대신, 앱 및 필요 환경(의존성)만 캡슐화 한다**
+
+- 컨테이너는 최소한의 OS 구성으로 빠르며, 적은 디스크를 점유
+- 공유, 재구축, 배포가 간단
+- **전체 머신(OS) 환경 대신, 애플리케이션 및 필요 환경(의존성)만 캡슐화**
 
 ### 버츄얼 머신
-- 많은 OS 구성요소가 필요하여 속도가 느리며, 많은 디스크를 점유한다
-- 공유, 재구축, 배포가 가능하지만 과정이 까다롭다
-- **앱 및 필요 환경뿐만 아니라, 전체 머신(OS) 환경을 포함하여 모두 캡슐화 한다**
+
+- 많은 OS 구성요소가 필요하여 속도가 느리며, 많은 디스크를 점유
+- 공유, 재구축, 배포가 가능하지만 과정이 복잡함
+- **애플리케이션 및 필요 환경뿐만 아니라, 전체 머신(OS) 환경을 포함하여 모두 캡슐화 한다**
 
 ---
 # 도커 Playground
@@ -43,19 +47,21 @@
 # 이미지 vs 컨테이너
 
 ### 이미지
-- 코드와 코드를 실행하는데 필요한 도구(환경)을 패키징한 것
+
+- 코드와 코드를 실행하는데 필요한 도구(환경)를 패키징한 것
 - 모든 설정 명령과 코드가 포함된 공유 가능한 패키지
 - 이미지를 기반으로 다른 시스템과 서버에서 여러 번 실행 가능
 
 ### 컨테이너
+
 - 이미지의 구체적인 실행 인스턴스
-- 실행 애플리케이션
+- 외부와 격리된 실행 애플리케이션
 
 ---
 # [Docker Hub](https://hub.docker.com/)
 
 >Docker 이미지를 저장하고 배포할 수 있는 클라우드 기반 레지스트리 서비스.
->개발 및 배포 프로세스를 단순화하고, 컨테이너화된 애플리케이션을 공유하기 위해 사용된다.
+>개발 및 배포 프로세스를 단순화하고, 컨테이너화 된 애플리케이션을 공유하기 위해 사용된다.
 
 ### 주요 기능
 
@@ -77,7 +83,7 @@
 >Dockerfile은 도커 이미지를 생성하기 위한 스크립트 파일로, 이미지 빌드 과정과 컨테이너 환경을 정의.
 >Docker는 Dockerfile에 따라 이미지를 빌드하고, 그 결과로 애플리케이션이 실행되는 컨테이너를 생성.
 
-### node 베이스 이미지를 통해 js 실행하는 Dockerfile
+**node 베이스 이미지 기반 Express.js 를 실행하는 Dockerfile**
 ```dockerfile
 FROM node
 
@@ -89,24 +95,26 @@ RUN npm install
 
 EXPOSE 80
 
-CMD ["node", "server.js"]
+CMD [ "node", "server.js" ]
 ```
 
-- **FROM**
-	- 베이스 이미지를 지정
-	- Docker 이미지는 기존 이미지 위에 쌓이는 방식으로 빌드되므로 베이스 이미지가 필요
-- **WORKDIR**
+- `FROM node`
+	- `node` 이미지를 베이스 이미지로 지정
+	- 도커 이미지는 기존 이미지 위에 쌓이는 방식으로 빌드되므로 베이스 이미지가 필요
+- `WORKDIR /app`
 	- 컨테이너 내부의 작업 디렉터리 설정
-- **COPY**
-	- 파일/디렉터리를 컨테이너 내부로 복사
-- **RUN**
-	- 이미지 빌드 과정에서 실행할 명령어
+	- 리눅스 **`cd`**(chage directory) 같은 명령어
+- `COPY . /app`
+	- 호스트 머신의 파일(디렉토리)을 컨테이너 내부로 복사하는 명령어
+	- 호스트 머신의 현재 디렉토리 파일(디렉토리)을 컨테이너 `/app` 경로에 복사
+- `RUN npm install`
+	- 이미지 빌드 과정에서 실행되는 명령어
 	- 주로 패키지 설치 등의 환경 구성에 사용
-- **EXPOSE**
-	- 컨테이너에서 외부(호스트)로 노출할 포트 지정
-	- **사용할 포트를 나타낼 뿐 실제로 외부와 연결하지는 않음**
-- **CMD**
-	- 컨테이너 생성시 실행할 명령
+- `EXPOSE 80`
+	- 컨테이너에서 외부(호스트 머신)로 노출할 포트 표기
+	- **사용할 포트를 나타낼 뿐 실제로 호스트 머신과 연결하지는 않음**
+- `CMD [ "node", "server.js" ]`
+	- 컨테이너 생성할 때 실행되는 명령어
 	- 단일 명령어만 정의 가능
 
 ---
@@ -118,9 +126,9 @@ CMD ["node", "server.js"]
 $ docker build .
 ```
 
-- **build**
-	- Dockerfile을 기반으로 이미지를 생성하는 명령어
-	- `.`은 상대 경로로 Dockerfile 위치가 기준
+- `build`
+	- Dockerfile 기반으로 이미지를 생성하는 명령어
+	- **`.`은 Dockerfile이 있는 경로를 뜻하며, 해당 경로가 Dockerfile의 빌드 컨텍스트 경로(context)**
 
 >Docker 컨테이너 생성 및 실행
 
@@ -128,14 +136,14 @@ $ docker build .
 $ docker run {Image ID}
 ```
 
-- **run**
+- `run {Image ID}`
 	- 이미지 기반으로 컨테이너를 생성하는 명령어
-	- 컨테이너 생성 및 백그라운드 실행
-	- `Image ID`의 경우 첫 번째(몇 개) 문자 사용 가능 (고유 식별자를 갖는 경우)
+	- 컨테이너 생성 및 Attatch mode(포그라운드) 실행
+	- `{Image ID}`의 일부 문자로도 실행 가능 (고유 식별자 인 경우)
 
->**위의 명령어 실행시 컨테이너는 생성되지만 접속이 되지 않는다.**
->그 이유는 **컨테이너는 격리된 환경으로 `-p` (publish) 옵션을 통해 외부(호스트)로 노출(연결)해야 한다.**
->호스트(외부) 8080 포트로 위의 컨테이너에 접속하려면 아래와 같이 실행해야 한다.
+>**위 명령어 실행시 컨테이너는 생성되지만 접속이 되지 않는다.**
+>그 이유는 **컨테이너는 격리된 환경으로 `-p` (publish) 옵션을 통해 외부(호스트 머신)로 노출(연결)해야 한다.**
+>호스트 머신 8080 포트로 위의 애플리케이션에 접속하려면 아래와 같이 실행해야 한다.
 
 ```shell
 $ docker run -p 8080:80 {Image ID}
@@ -146,20 +154,21 @@ $ docker run -p 8080:80 {Image ID}
 
 ### 블루프린트(읽기전용)
 
->소스코드를 수정 후 컨테이너를 다시 실행해도 변경사항은 적용되지 않는다.
->그 이유는 이미지는 `build` 시점에 `Dockerfile` 에 명시된 대로 소스코드를 컨테이너 내부로 복사하기 때문입니다.
->즉, `build` 이후에 소스를 수정하여도 이미지에 저장된 코드는 변경되지 않기 때문에 적용되지 않습니다.
+>소스 코드를 수정 후 컨테이너를 다시 실행해도 변경 사항은 적용되지 않는다.
+>그 이유는 이미지는 `build` 시점에 `Dockerfile` 에 명시된 대로 소스 코드를 컨테이너 내부로 복사하기 때문이다.
+>즉, `build` 이후에 소스를 수정하여도 이미지에 저장된 코드는 변경되지 않기 때문에 적용되지 않는다.
+>변경한 소스 코드를 적용하려면 이미지를 다시 빌드 해야 한다.
 
 ### 레이어 기반 아키텍처
 
->Docker는 이미지를 생성할 때 각각의 명령을 이미지로 만들어 쌓는다. (레이어)
->Docker는 이미지를 재생성할 때 각 명령(이미지 레이어)을 확인하여 변경사항이 없는 경우 기존 이미지 레이어를 사용(캐싱)하여 이미지 재생성을 최적화 한다.
+>Docker는 이미지를 생성할 때 각각의 명령을 이미지로 만들어 쌓는다. (Layer)
+>Docker는 이미지를 재생성할 때 각 명령(이미지 레이어)을 확인하여 변경 사항이 없는 경우 기존 이미지 레이어를 재사용(캐싱)하여 이미지 재생성을 최적화 한다.
 
 ---
 # 컨테이너와 상호작용(인터렉티브 모드)
 
->입력 받은 두 숫자 사이의 랜덤 숫자를 출력하는 파이썬 코드를 Docker 이미지
 
+**python 베이스 이미지 기반 파이썬 코드를 실행하는 Dockfile**
 ```dockerfile
 FROM python
 
@@ -170,26 +179,32 @@ COPY . /app/
 CMD ["python", "rng.py"]
 ```
 
->컨테이너는 기본적으로 격리된 환경이기 때문에 상호작용이 되지 않는다.
->상호 작용을 위해서는 컨테이너 생성시에 상호작용을 할 수 있게 옵션을 주어야 한다.
+>파이썬 애플리케이션 이미지 생성
+
+```bash
+$ docker build .
+```
+
+>컨테이너는 기본적으로 격리된 환경이기 때문에 상호작용 되지 않는다.
+>상호 작용을 위해서는 컨테이너를 생성할 때 상호작용을 할 수 있도록 옵션을 주어야 한다.
 
 ```bash
 $ docker run -it {Image ID}
 ```
 
-- **-i**
+- `run -i`
 	- `--interactive` 옵션의 약자로 컨테이너에 입력이 가능하도록 하는 옵션(**STDIN**)
-- **-t**
+- `run -t`
 	- `--tty` 옵션의 약자로 입력을 위한 터미널을 생성
 
 >위의 파이썬 애플리케이션은 출력 후에 종료되기 때문에 컨테이너도 같이 종료된다.
 >종료된 컨테이너를 다시 실행하는 명령어는 아래와 같다.
 
 ```bash
-$ docker start -a -t {Container ID}
+$ docker start -ia {Container ID}
 ```
 
-- **a**
+- `start -a`
 	- `--attach` 옵션 약자로 표준출력(**STDOUT**)과 표준에러(**STDERR**) 출력
 
 ---
@@ -201,10 +216,10 @@ $ docker start -a -t {Container ID}
 $ docker rm {Container ID}
 ```
 
-- **rm**
-	- 컨테이너 제거 명령어로 실행 중지된 컨테이너만 제거 가능
-	- 컨테이너 생성시 `--rm` 옵션으로 실행 중지되면 자동으로 제거도 가능
-		- `docker run --rm {Container ID}`
+- `rm {Container ID}`
+	- 컨테이너 제거 명령어로 중지된 컨테이너만 제거 가능
+	- 컨테이너를 생성할 때 `--rm` 옵션을 주면 컨테이너가 중지 되었을 때 자동 제거된다.
+		- `$ docker run --rm {Container ID}`
 
 >중지된 컨테이너 모두 제거
 
@@ -212,7 +227,7 @@ $ docker rm {Container ID}
 $ docker container prune
 ```
 
-- **prune**
+- `container prune`
 	- 중지된 컨테이너 모두 제거
 
 >이미지 제거
@@ -221,18 +236,20 @@ $ docker container prune
 $ docker rmi {Image ID}
 ```
 
-- **rmi**
-	- 이미지 제거 명령어로 사용되지 않은 이미지만 제거 가능
+- `rmi {Image ID}`
+	- 이미지 제거 명령어로 사용되지 않은 이미지(컨테이너화 되지 않은)만 제거 가능
 	- `Image ID` 로 생성된 컨테이너가 있는 경우 제거 불가
 
->사용되지 않은 이미지 모두 제거
+>태그 되지 않거나 대체된 이미지 모두 제거
 
 ```bash
 $ docker image prune
 ```
 
-- **prune**
-	- `tag` 가 없는 이미지 모두 제거
+- `image prune`
+	- `tag` 가 없거나 대체된 이미지 모두 제거
+- `image prune -a`
+	- 사용되지 않은 이미지(컨테이너화 되지 않은) 모두 제거
 
 ---
 # 컨테이너 파일 복사
@@ -243,29 +260,29 @@ $ docker image prune
 $ docker cp directory/. {Container ID}:/directory
 ```
 
-- **cp**
+- `cp`
 	- 파일 복사 명령어
 	- 중지된 컨테이너도 복사 가능
-- **directory/.**
-	- 복사할 파일 경로(호스트)
+- `directory/.`
+	- 복사할 파일 경로(호스트 머신)
 	- `directory/.` 은 `directory` 에 있는 모든 파일을 복사
-	- 특정 파일만 복사할 경우 `directory/{File Name}` 
-- **{Container ID}:/directory**
-	- 복사한 파일을 생성할 경로(컨테이너)
+	- 특정 파일만 복사할 경우 `directory/{File name}` 
+- `{Container ID}:/directory`
+	- 복사한 파일을 컨테이너에 생성할 경로
 	- `:/directory` 는 해당 컨테이너의 `/directory` 경로에 복사된 파일 생성
 
 >컨테이너 -> 호스트로 파일 복사
 
 ```bash
-$ docker cp {Container ID}:/directory .
+$ docker cp {Container ID}:/directory ./path
 ```
 
-- **{Container ID}:/directory**
+- `{Container ID}:/directory`
 	- 복사할 파일 경로(컨테이너)
 	- `:/directory` 은 `directory` 디렉토리 및 하위 파일 복사
 	- 특정 파일만 복사할 경우 `:/directory/{File Name}`
-- **.**
-	- 복사한 파일을 생성할 경로(호스트)
+- `./path`
+	- 복사한 파일을 생성할 경로(호스트 머신)
 
 ---
 # 이미지 태그
@@ -277,7 +294,7 @@ $ docker cp {Container ID}:/directory .
 $ docker run node:23-alpine
 ```
 
-- **node:23-alpine**
+- `node:23-alpine`
 	- `node` 는 `name`
 	- `:23-alpine` 은 `tag` 로 노드 23 버전의 알파인(경량화된 리눅스) 이미지를 지정
 	- `name` 만 지정하는 경우는 `node:latest` 와 동일 (최신 버전)
@@ -295,9 +312,9 @@ $ docker run node:23-alpine
 $ docker run -v {Volume name}:{Container path} {Image ID}
 ```
 
-- **-v**
-	- `--volume` 약자로 도커 볼륨을 생성하는 명령어
-	- `{볼륨명}:{볼륨으로 만들 디렉토리}` 를 실행하면 해당 디렉토리의 볼륨이 생성된다.
+- `-v`
+	- `--volume` 옵션 약자로 도커 볼륨을 생성하는 명령어
+	- `run -v {Volume name}:{Container path}`를 실행하면 해당 디렉토리의 볼륨이 생성된다.
 
 ## 볼륨 종류
 
@@ -311,7 +328,7 @@ $ docker run -v {Volume name}:{Container path} {Image ID}
 - 컨테이너 간의 볼륨 공유가 불가능하다.
 - 볼륨을 재사용 할 수 없다.
 	- 같은 이미지로 컨테이너를 생성하더라도 볼륨은 공유되지 않는다.
-- **`Dockerfile` 에서 `VOLUME ["{Container Path}"]`으로 생성 가능하다.**
+- **`Dockerfile` 에서 `VOLUME ["{Container Path}"]`으로도 생성 가능하다.**
 
 ```bash
 $ docker run -v {Container path} {Image ID}
@@ -344,7 +361,7 @@ $ docker run -v {Host Absolute path}:{Container path} {Image ID}
 >볼륨 사용 예시
 ```bash
 $ docker run -d --rm --name feedback-app -p 3000:80 \
-> -v "/root/e-vol:/app" \
+> -v "/root/volume:/app" \
 > -v /app/node_modules \
 > -v feedback:/app/feedback
 > -v /app/temp \
@@ -364,9 +381,9 @@ $ docker run -v {Host Absolute path}:{Container path}:ro {Image ID}
 
 ### 볼륨(`-v`)은 {Container path}가 구체적일수록 우선순위를 갖는다
 
->소스코드를 바인드 마운트를 활용하여 실시간 적용하고 싶은 경우는 아래와 같이 컨테이너를 생성할 수 있다.
+>소스 코드의 변경사항을 이미지 빌드 없이(실시간) 반영하고 싶은 경우는 아래와 같이 바인드 마운트를 활용할 수 있다.
 >`$ docker run -v /source:/app {Image ID}`
->하지만 만약 노드처럼 런타임으로 모듈을 설치하고 해당 모듈이 프로젝트 디렉토리(ex: `/app/node_modules`)에 생성되는 경우 **바인드 마운트에 의해 `/app/node_modules`는 덮어씌여져서** 애플리케이션 실행에 오류가 발생한다.
+>하지만 만약 노드처럼 런타임으로 모듈을 설치하고 해당 모듈이 프로젝트 디렉토리(`/app/node_modules`)에 생성되는 경우 **바인드 마운트에 의해 `/app/node_modules`는 덮어씌여져서** 애플리케이션 실행에 오류가 발생한다.
 >이런 경우 구체적 경로가 더 우선 되는 볼륨의 특성을 사용하여 `node_modules` 디렉토리를 **Override** 한다.
 >`$ docker run -v /source:/app -v /app:node_modules {Image ID}`
 
@@ -416,11 +433,11 @@ dist
 .git
 Dockerfile
 ```
-- **node_modules**
+- `node_modules`
 	- `npm install` 로 생성된 모듈 파일 디렉토리
-- **dist**
+- `dist`
 	- `npm run build` 로 생성된 애플리케이션 정적 파일 디렉토리
-- **Dockerfile**
+- `Dockerfile`
 	- `Dockerfile` 은 기본적으로 제외되지만, 명시적으로 작성
 
 ---
@@ -450,11 +467,11 @@ EXPOSE $PORT
 CMD [ "node", "server.js" ]
 ```
 
-- **ENV PORT 80**
+- `ENV PORT 80`
 	- `ENV` 는 환경 변수 지정 명령어
 	- `PORT` 는 환경 변수명
 	- `80` 은 기본값으로 사용됨
-- **EXPOSE $PORT**
+- `EXPOSE $PORT`
 	- 환경 변수는 변수명 앞에 `$` 를 붙여서 사용
 
 
@@ -464,13 +481,13 @@ CMD [ "node", "server.js" ]
 ```bash
 $ docker run -d --rm --name feedback-app -p 3000:8000 \
 > -e PORT=8000 \
-> -v "/root/e-env:/app" \
+> -v "/root/env:/app" \
 > -v /app/node_modules \
 > -v feedback:/app/feedback \
 > -v /app/temp \
 > {Image ID}
 ```
-- **-e PORT=8000**
+- `-e PORT=8000`
 	- `-e` 는 `--env` 의 약자로 환경 변수 설정 옵션
 	- `PORT=8000` 은 `PORT` 라는 환경 변수에 `8000` 대입
 
@@ -485,13 +502,13 @@ PORT=8000
 ```bash
 $ docker run -d --rm --name feedback-app -p 3000:8000 \
 > --env-file ./.env \
-> -v "/root/e-env:/app" \
+> -v "/root/env:/app" \
 > -v /app/node_modules \
 > -v feedback:/app/feedback \
 > -v /app/temp \
 > {Image ID}
 ```
-- **--env-file ./.env**
+- `--env-file ./.env`
 	- `./.env` 는 현재 터미널 위치에 `.env` 파일이 있는 경우 (상대 경로)
 	- `/root/e-env/.env` 같이 절대 경로도 사용 가능
 
@@ -526,17 +543,17 @@ EXPOSE $PORT
 
 CMD [ "node", "server.js" ]
 ```
-- **ARG DEFAULT_PORT=80**
+- `ARG DEFAULT_PORT=80`
 	- `ARG`: 빌드 인수 선언 명령어
 	- `DEFAULT_PORT=80`: 변수명과 기본값
-- **ENV PORT=$DEFAULT_PORT**
+- `ENV PORT=$DEFAULT_PORT`
 	- `$DEFAULT_PORT`: `DEFAULT_PORT` 변수 참조
 
 ### 런타임 빌드 인수 Override(변경)
 ```bash
 $ docker build -t feedback:dev --build-arg DEFAULT_PORT=8000 .
 ```
-- **--build-arg DEFAULT_PORT=8000**
+- `--build-arg DEFAULT_PORT=8000`
 	- `--build-arg`: 빌드 인수 전달 옵션
 	- `DEFAULT_PORT=8000`: `DEFAULT_PORT` 변수 값을 `8000`으로 변경
 
@@ -586,12 +603,12 @@ mongoose.connect(
     }
 );
 ```
-- **mongoose.connect()**
+- `mongoose.connect()`
 	- Mongo DB 접속 메서드
-- **mongodb://localhost:27017/swfavorites**
+- `mongodb://localhost:27017/swfavorites`
 	- `localhost:27017`의 `swfavorites` DB 커넥션을 요청한다.
 	- `localhost:27017` 은 컨테이너의 **27017** 포트를 가리키고, 컨테이너에는 Mongo DB가 없기 때문에 에러가 발생한다.
-- **mongodb://host.docker.internal:27017/swfavorites**
+- `mongodb://host.docker.internal:27017/swfavorites`
 	- 도커는 `host.docker.internal` 을 호스트 머신의 IP로 변환한다.
 	- **27017** 포트 MongoDB의 `swfavorites` DB 커넥션을 요청한다.
 
@@ -606,14 +623,14 @@ mongoose.connect(
 ```bash
 $ docker network create movie-net
 ```
-- **network create movie-net**
+- `network create movie-net`
 	- `movie-net` 네트워크 생성
 
 **2. MongoDB Container 생성 및 네트워크 연결**
 ```bash
 $ docker run -d --name mongodb-container --network movie-net mongo
 ```
-- **--network movie-net**
+- `--network movie-net`
 	- `mongodb` 컨테이너를 `movie-net` 네트워크에 연결
 
 **3. Movie App 코드에 MongoDB 접속 정보 작성**
@@ -630,7 +647,7 @@ mongoose.connect(
     }
 );
 ```
-- **mongodb://mongodb-container:27017**
+- `mongodb://mongodb-container:27017`
 	- `mongodb-container`: 2번에서 생성한 Mongo DB 컨테이너 이름
 
 **4. Movie App 이미지 생성**
@@ -707,6 +724,8 @@ $ docker run -d --name mongodb --network goals-net --rm -v data:/data/db mongo
 >	- `PORT`: 80
 >- 애플리케이션 실행 명령어는 `node app.js`
 >- `.env` 파일 사용.
+>- 로그 데이터 유지되도록 설정 (`logs`)
+>- 이미지 재빌드 없이 소스 코드 수정 사항 반영.
 
 ###### Dockerfile
 ```dockerfile
@@ -719,6 +738,8 @@ COPY package.json /app/
 RUN npm install
 
 COPY . /app/
+
+#VOLUME ["/app/node_modules"]
 
 ENV DB_URL="mongodb"
 
@@ -742,7 +763,7 @@ $ docker build -t goals-node .
 
 ###### 백엔드 컨테이너 생성 명령어
 ```bash
-$ docker run -d --name goals-backend --network goals-net --rm -p 80:80 --env-file ./.env goals-node
+$ docker run -d --name goals-backend --network goals-net --rm -p 80:80 --env-file ./.env -v logs:/app/logs -v /root/goals/backend:/app -v /app/node_modules goals-node
 ```
 
 
@@ -750,9 +771,10 @@ $ docker run -d --name goals-backend --network goals-net --rm -p 80:80 --env-fil
 
 >**컨테이너 생성 요구 사항**
 >- `node:14` 공식 이미지 사용.
->- 컨테이너 이름은 `goals-frontend`.
+>- 컨테이너 이름은 `goals-frontend`
 >- 컨테이너 중지 시 자동 삭제.
->- 이미지 재빌드 없이 소스코드 수정 사항 반영.
+>- 이미지 재빌드 없이 소스 코드 수정 사항 반영.
+>	- 컨테이너 내부에서 소스 코드 수정 안되도록 설정.
 >- **3000** 포트 사용.
 >- 애플리케이션 실행 명령어는 `npm start`
 
@@ -768,8 +790,6 @@ RUN npm install
 
 COPY . .
 
-VOLUME ["/app/node_modules"]
-
 EXPOSE 3000
 
 CMD ["npm", "start"]
@@ -782,7 +802,7 @@ $ docker build -t goals-react .
 
 ###### 프론트엔드 컨테이너 생성 명령어
 ```bash
-$ docker run -d --name goals-frontend --rm -v /goals/frontend/src:/app/src -p 3000:3000 goals-react
+$ docker run -d --name goals-frontend --rm -v /root/goals/frontend/src:/app/src:ro -p 3000:3000 goals-react
 ```
 
 ---
