@@ -129,6 +129,8 @@ $ docker build .
 - `build`
 	- Dockerfile 기반으로 이미지를 생성하는 명령어
 	- **`.`은 Dockerfile이 있는 경로를 뜻하며, 해당 경로가 Dockerfile의 빌드 컨텍스트 경로(context)**
+- `build -t {Image name}`
+	- `-t` 는 `--tag` 옵션의 약자로 이미지 이름을 지정할 때 사용한다.
 
 >Docker 컨테이너 생성 및 실행
 
@@ -257,32 +259,32 @@ $ docker image prune
 >호스트 -> 컨테이너로 파일 복사
 
 ```bash
-$ docker cp directory/. {Container ID}:/directory
+$ docker cp ./copy_dir {Container ID}:/
 ```
 
 - `cp`
-	- 파일 복사 명령어
+	- 복사 명령어
 	- 중지된 컨테이너도 복사 가능
-- `directory/.`
-	- 복사할 파일 경로(호스트 머신)
-	- `directory/.` 은 `directory` 에 있는 모든 파일을 복사
-	- 특정 파일만 복사할 경우 `directory/{File name}` 
-- `{Container ID}:/directory`
-	- 복사한 파일을 컨테이너에 생성할 경로
-	- `:/directory` 는 해당 컨테이너의 `/directory` 경로에 복사된 파일 생성
+- `./copy_dir`
+	- 복사할 디렉토리 경로(호스트 머신)
+	- `./copy_dir` 에 있는 모든 파일을 복사
+	- 특정 파일만 복사할 경우 `{Path}/{File name}` 
+- `{Container ID}:/`
+	- `{Container ID}`는 복사할 컨테이너
+	- `:/` 는 해당 컨테이너의 복사할 경로
 
 >컨테이너 -> 호스트로 파일 복사
 
 ```bash
-$ docker cp {Container ID}:/directory ./path
+$ docker cp {Container ID}:/copy_dir/text.txt ./from_con
 ```
 
-- `{Container ID}:/directory`
-	- 복사할 파일 경로(컨테이너)
-	- `:/directory` 은 `directory` 디렉토리 및 하위 파일 복사
-	- 특정 파일만 복사할 경우 `:/directory/{File Name}`
-- `./path`
-	- 복사한 파일을 생성할 경로(호스트 머신)
+- `{Container ID}:/copy_dir/text.txt`
+	- 복사할 파일 경로 (컨테이너)
+- `./from_con.txt`
+	- 복사한 파일을 생성할 경로 (호스트 머신)
+	- 파일을 복사한 경우 `from_con` 이름으로 파일 생성
+	- 디렉토리를 복사한 경우 `from_con` 이름으로 디렉토리 및 내부 파일 생성
 
 ---
 # 이미지 태그
@@ -314,7 +316,7 @@ $ docker run -v {Volume name}:{Container path} {Image ID}
 
 - `-v`
 	- `--volume` 옵션 약자로 도커 볼륨을 생성하는 명령어
-	- `run -v {Volume name}:{Container path}`를 실행하면 해당 디렉토리의 볼륨이 생성된다.
+	- `run -v {Volume name}:{Container path}` 를 실행하면 `{Container path}` 내부 파일 볼륨이 생성된다.
 
 ## 볼륨 종류
 
@@ -324,7 +326,7 @@ $ docker run -v {Volume name}:{Container path} {Image ID}
 - 각각의 컨테이너마다 생성 된다.
 	- 해당 컨테이너만 사용 가능한 볼륨
 - ``--rm`` 옵션으로 컨테이너 생성시 컨테이너가 중지되면 컨테이너와 같이 볼륨도 삭제된다.
-	- **`--rm` 옵션 없이 컨테이너 생성, 중지, 제거할 경우 볼륨 제거되지 않는다.**
+	- **`--rm` 옵션 없이 컨테이너 생성, 중지, 제거할 경우 볼륨은 제거되지 않는다.**
 - 컨테이너 간의 볼륨 공유가 불가능하다.
 - 볼륨을 재사용 할 수 없다.
 	- 같은 이미지로 컨테이너를 생성하더라도 볼륨은 공유되지 않는다.
@@ -350,7 +352,7 @@ $ docker run -v {Volume name}:{Container path} {Image ID}
 
 **특징**
 - 호스트 머신 파일 시스템과 연결된다.
-- 호스트 머신 파일 시스템에서 삭제해야 한다. (도커로 제거 불가능)
+- 호스트 머신 파일 시스템에서 삭제해야 한다. (컨테이너에서 제거 불가능)
 - 컨테이너 간의 볼륨 공유가 가능하다.
 - 볼륨 재사용이 가능하다.
 
@@ -381,9 +383,9 @@ $ docker run -v {Host Absolute path}:{Container path}:ro {Image ID}
 
 ### 볼륨(`-v`)은 {Container path}가 구체적일수록 우선순위를 갖는다
 
->소스 코드의 변경사항을 이미지 빌드 없이(실시간) 반영하고 싶은 경우는 아래와 같이 바인드 마운트를 활용할 수 있다.
+>소스 코드의 변경 사항을 이미지 재빌드 없이 반영하고 싶은 경우는 아래와 같이 바인드 마운트를 활용할 수 있다.
 >`$ docker run -v /source:/app {Image ID}`
->하지만 만약 노드처럼 런타임으로 모듈을 설치하고 해당 모듈이 프로젝트 디렉토리(`/app/node_modules`)에 생성되는 경우 **바인드 마운트에 의해 `/app/node_modules`는 덮어씌여져서** 애플리케이션 실행에 오류가 발생한다.
+>하지만 만약 노드처럼 런타임으로 모듈을 설치하고 해당 모듈이 바운드 마운트 디렉토리(`/app/node_modules`)에 생성되는 경우 **바인드 마운트에 의해 `/app/node_modules`는 덮어씌여져** 모듈을 찾을 수 없는 오류가 발생한다.
 >이런 경우 구체적 경로가 더 우선 되는 볼륨의 특성을 사용하여 `node_modules` 디렉토리를 **Override** 한다.
 >`$ docker run -v /source:/app -v /app:node_modules {Image ID}`
 
@@ -410,7 +412,7 @@ $ docker volume rm {Volume name}
 
 **상세정보 조회**
 ```bash
-docker volume inspect {Volume name}
+$ docker volume inspect {Volume name}
 ```
 
 ---
@@ -469,7 +471,7 @@ CMD [ "node", "server.js" ]
 
 - `ENV PORT 80`
 	- `ENV` 는 환경 변수 지정 명령어
-	- `PORT` 는 환경 변수명
+	- `PORT` 는 변수명
 	- `80` 은 기본값으로 사용됨
 - `EXPOSE $PORT`
 	- 환경 변수는 변수명 앞에 `$` 를 붙여서 사용
@@ -537,8 +539,6 @@ ARG DEFAULT_PORT=80
 
 ENV PORT=$DEFAULT_PORT
 
-ENV PORT 80
-
 EXPOSE $PORT
 
 CMD [ "node", "server.js" ]
@@ -551,11 +551,11 @@ CMD [ "node", "server.js" ]
 
 ### 런타임 빌드 인수 Override(변경)
 ```bash
-$ docker build -t feedback:dev --build-arg DEFAULT_PORT=8000 .
+$ docker build -t feedback:args --build-arg DEFAULT_PORT=9000 .
 ```
 - `--build-arg DEFAULT_PORT=8000`
 	- `--build-arg`: 빌드 인수 전달 옵션
-	- `DEFAULT_PORT=8000`: `DEFAULT_PORT` 변수 값을 `8000`으로 변경
+	- `DEFAULT_PORT=9000`: `DEFAULT_PORT` 변수 값을 9000으로 변경
 
 ---
 # 네트워크(Network)
@@ -611,6 +611,8 @@ mongoose.connect(
 - `mongodb://host.docker.internal:27017/swfavorites`
 	- 도커는 `host.docker.internal` 을 호스트 머신의 IP로 변환한다.
 	- **27017** 포트 MongoDB의 `swfavorites` DB 커넥션을 요청한다.
+	- **`host.docker.internal` 을 통해 호스트 머신과 통신하기 위해서는 `host.docker.internal` 가 도커 게이트웨이를 가리키도록 지정해주어야 한다.**
+		- `--add-host=host.docker.internal:host-gateway`
 
 ### 컨테이너 <-> 컨테이너 통신 (도커 네트워크)
 
@@ -628,7 +630,7 @@ $ docker network create movie-net
 
 **2. MongoDB Container 생성 및 네트워크 연결**
 ```bash
-$ docker run -d --name mongodb-container --network movie-net mongo
+$ docker run -d --rm --name mongodb --network movie-net mongo
 ```
 - `--network movie-net`
 	- `mongodb` 컨테이너를 `movie-net` 네트워크에 연결
@@ -636,7 +638,7 @@ $ docker run -d --name mongodb-container --network movie-net mongo
 **3. Movie App 코드에 MongoDB 접속 정보 작성**
 ```js
 mongoose.connect(
-    'mongodb://mongodb-container:27017/swfavorites',
+    'mongodb://mongodb:27017/swfavorites',
     { useNewUrlParser: true },
     (err) => {
         if (err) {
@@ -647,8 +649,8 @@ mongoose.connect(
     }
 );
 ```
-- `mongodb://mongodb-container:27017`
-	- `mongodb-container`: 2번에서 생성한 Mongo DB 컨테이너 이름
+- `mongodb://mongodb:27017`
+	- `mongodb`: 2번에서 생성한 Mongo DB 컨테이너 이름
 
 **4. Movie App 이미지 생성**
 ```bash
@@ -739,7 +741,7 @@ RUN npm install
 
 COPY . /app/
 
-#VOLUME ["/app/node_modules"]
+VOLUME ["/app/node_modules"]
 
 ENV DB_URL="mongodb"
 
@@ -763,7 +765,11 @@ $ docker build -t goals-node .
 
 ###### 백엔드 컨테이너 생성 명령어
 ```bash
-$ docker run -d --name goals-backend --network goals-net --rm -p 80:80 --env-file ./.env -v logs:/app/logs -v /root/goals/backend:/app -v /app/node_modules goals-node
+$ docker run -d --name goals-backend --network goals-net --rm -p 80:80 \
+> --env-file ./.env \
+> -v logs:/app/logs \
+> -v /root/goals/backend:/app \
+> goals-node
 ```
 
 
