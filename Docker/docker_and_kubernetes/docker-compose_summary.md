@@ -134,3 +134,25 @@ volumes:
 	- 서비스 로그 확인.
 
 ---
+# `docker-compose VS docker compose`
+
+### docker-compose
+
+- `docker-compose`는 **독립형 파이썬 패키지**로 설치되는 Docker Compose 버전.
+- Docker Compose v1.x 버전.
+- `pip`, `apt`, `curl` 등을 사용하여 별도로 설치 필요.
+- **`docker-compose` 명령어는 더 이상 업데이트 되지 않고, 사용 중단 예정(Deprecated)**
+
+### `docker compose`
+
+- `docker compose` 는 **Docker CLI** 에 내장된 Compose 기능.
+- Docker Compose v2.x 버전이며, Docker Engine에 통합됨.
+- Docker 버전 **20.10.13** 이상부터 기본 포함
+
+### 결론
+
+>`docker-compose` 대신 `docker compose` 사용을 권장.
+
+---
+
+
