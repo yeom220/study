@@ -27,6 +27,7 @@
 >FROM node:14-slim
 >USER node
 >WORKDIR /app
+>ENTRYPOINT [ "npm" ]
 >```
 >>이미지를 빌드 후 `npm init` 을 실행하면 `package.json` 파일이 호스트 사용자 권한으로 생성된다.
 >
@@ -40,6 +41,7 @@
 >RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
 >USER user
 >WORKDIR /app
+>ENTRYPOINT [ "npm" ]
 >```
 >>이후 이미지 빌드시에 사용자 계정을 넘긴다.
 >```bash
