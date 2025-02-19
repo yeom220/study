@@ -70,14 +70,25 @@
 # 쿠버네티스 자동화와 설정
 
 ![[kubernetes_work.png]]
-- 쿠버네티스 자동화
+- 쿠버네티스가 해주는 작업
 	- `Pods` 의 생성 및 관리
 	- `Pods` 모니터링을 통한 스케일링 및 재생성
 	- 클라우드 리소스를 활용하여 구성을 적용
-- 직접 해야 하는 것
+- 직접 해야 하는 작업
 	- Cluster 및 Node 인스턴스 생성 (워커 + 마스터 노드)
 	- API 서버, kubelet 및 기타 쿠버네티스 서비스들 노드에 설치
 	- 필요시 클라우드 프로바이더 리소스 생성(Load Balancer, Filesystems)
 
 ---
+# 쿠버네티스 작동 방식
+
+>
+### Pod object
+
+### Deployment object
+
+### 
+
+
+
 출처: [유데미 Docker & Kubernetes: 실전가이드](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=24T4MT180225)
