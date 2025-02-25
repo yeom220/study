@@ -383,4 +383,125 @@ spec:
 			- `LoadBalancer`
 
 ---
+# 쿠버네티스 데이터 & 볼륨 관리
+
+## 쿠버네티스 볼륨 VS 도커 볼륨
+
+
+## 쿠버네티스 볼륨 종류
+
+### emptyDir 볼륨
+
+>`Pod`의 수명을 공유하는 임시 디렉토리.
+>`Pod`가 삭제되면 같이 삭제됨.
+>`Pod`에 종속적인 볼륨으로 `Pod`가 여러 개인 경우 데이터가 공유되지 않음.
+>`Pod` 내부 `Containers` 사이에는 데이터 공유.
+
+```yaml
+...
+	spec:
+		containers:
+			- name: story
+			  image: yeom220/kub-data-demo:1
+			  volumeMounts:
+				  - mountPath: /app/story
+				    name: story-volume
+		volumes:
+			- name: story-volume
+			  emptyDir: {}
+```
+- `volumeMounts:`
+	- `Pod containers` 에 마운트 할 볼륨 정의.
+	- `- mountPath: /app/story`
+		- 컨테이너 내부 `/app/story` 디렉토리를 볼륨에 마운트
+	- `name: story-volume`
+		- 마운트 할 볼륨 이름 정의.
+- `volumes:`
+	- 볼륨 정의(생성).
+	- `- name: story-volume`
+		- `story-volume` 볼륨 생성.
+	- `emptyDir: {}`
+		- 볼륨 유형 정의.
+
+### hostPath 볼륨
+
+>컨테이너에 직접 노출되는 호스트 머신(워커노드)의 기존 파일이나 디렉토리.
+>도커의 바인드 마운트와 비슷한 개념.
+>`Node` 에 종속적인 볼륨으로 다른 `Node` 와 데이터가 공유되지 않음.
+>`Node` 내부 `Pods` 사이에는 데이터 공유. 
+
+```yaml
+...
+	spec:
+		containers:
+			- name: story
+			  image: yeom220/kub-data-demo:1
+			  volumeMounts:
+				  - mountPath: /app/story
+				    name: story-volume
+		volumes:
+			- name: story-volume
+			  hostPath:
+				  path: /data
+				  type: DirectoryOrCreate
+```
+- `hostPath:`
+	- 볼륨 유형 정의.
+	- `path: /data`
+		- 호스트 머신의 경로.
+	- `type: DirectoryOrCreate`
+		- 호스트 머신에 `/data` 디렉토리가 없는 경우 생성하도록 정의.
+
+### CSI 볼륨
+
+>**Container Storage Interface** 의 약자로 외부 스토리지와 연결할 수 있도록 제공되는 인터페이스.
+>예를 들어 **AWS EFS CSI** 와 같은 드라이버를 사용하면 **AWS EFS** 스토리지 서비스와 쉽게 연결할 수 있다.
+
+### 영구 볼륨(Persistent Volume)
+
+>`Node` 와 `Pod` 에 종속되지 않고, 독립성을 가진 볼륨.
+>모든 `Node` 및 `Pod` 와 공유 가능한 데이터.
+>`Cluster` 에 새 리소스, 새 엔티티를 가진 볼륨을 생성하고, 각 `Node` 에 `PV Claim` 을 생성하여 영구 볼륨에 액세스 한다.
+>각 영구 볼륨에 대해 각각의 `Claim` 을 가짐.
+
+**영구 볼륨 정의 YAML**
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+	name: host-pv
+spec:
+	capacity:
+		storage: 1Gi
+	volumeMode: Filesystem # or Block
+	accessModes:
+		- ReadWriteOnce
+		# - ReadOnlyMany
+		# - ReadWriteMany
+	hostPath:
+		path: /data
+		type: DirectoryOrCreate
+```
+- `kind: PersistentVolume`
+	- 영구 볼륨 정의
+- `spec:`
+	- [PV spec 문서](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistent-volumes)
+	- `capacity:`
+		- `storage: 1Gi`
+			- 볼륨 크기를 최대 1GB 로 정의.
+	- `volumeMode: Filesystem`
+	- `accessModes:`
+		- 영구 볼륨에 접근 가능 범위 정의.
+		- `- ReadWriteOnce`
+		- `- ReadOnlyMany`
+		- `- ReadWriteMany`
+	- `hostPath:`
+		- 볼륨 유형 정의.
+		- **hostPath는 단일 노드 환경(테스트 환경) 에서만 사용 가능.**
+
+### 그 외 볼륨 유형
+- [쿠버네티스 볼륨 유형 문서](https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/volume/)
+
+
+
 출처: [유데미 Docker & Kubernetes: 실전가이드](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=24T4MT180225)
