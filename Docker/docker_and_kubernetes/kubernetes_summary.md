@@ -397,6 +397,7 @@ spec:
 >`Pod`에 종속적인 볼륨으로 `Pod`가 여러 개인 경우 데이터가 공유되지 않음.
 >`Pod` 내부 `Containers` 사이에는 데이터 공유.
 
+**Pod 정의 YAML**
 ```yaml
 ...
 	spec:
@@ -430,6 +431,7 @@ spec:
 >`Node` 에 종속적인 볼륨으로 다른 `Node` 와 데이터가 공유되지 않음.
 >`Node` 내부 `Pods` 사이에는 데이터 공유. 
 
+**Pod 정의 YAML**
 ```yaml
 ...
 	spec:
@@ -474,6 +476,7 @@ spec:
 	capacity:
 		storage: 1Gi
 	volumeMode: Filesystem # or Block
+	storageClassName: standard
 	accessModes:
 		- ReadWriteOnce
 		# - ReadOnlyMany
@@ -488,16 +491,80 @@ spec:
 	- [PV spec 문서](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistent-volumes)
 	- `capacity:`
 		- `storage: 1Gi`
-			- 볼륨 크기를 최대 1GB 로 정의.
+			- 볼륨 크기를 최대 1GB로 정의.
 	- `volumeMode: Filesystem`
+	- `storageClassName: standard`
+		- `PV` 가 속한 `StorageClass` 정의.
+		- `StorageClass` 는 쿠버네티스에서 관리자에게 스토리지 관리 방법과 볼륨 구성 방법을 세부적으로 제어할 수 있게 해주는 개념.
+		- `minikube` 클러스터에는 `standard` 스토리지 클래스가 있음.
 	- `accessModes:`
-		- 영구 볼륨에 접근 가능 범위 정의.
+		- 볼륨의 읽기/쓰기 범위 정의.
 		- `- ReadWriteOnce`
 		- `- ReadOnlyMany`
 		- `- ReadWriteMany`
 	- `hostPath:`
 		- 볼륨 유형 정의.
 		- **hostPath는 단일 노드 환경(테스트 환경) 에서만 사용 가능.**
+
+### 영구 볼륨 클레임(PV Claim)
+
+>`Persistent Volume`(영구 볼륨)을 요청하는 방법.
+>`Pod` 가 `Persistent Volume` 에 접근하기 위한 인터페이스.
+>`PVC` 는 `PV` 와 1:1로 매핑되어, 하나의 `PVC` 는 하나의 `PV` 에만 바인딩 가능.
+
+**영구 볼륨 클레임 정의 YAML**
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metaData:
+	name: host-pvc
+spec:
+	volumeName: host-pv
+	accessModes:
+		- ReadWriteOnce
+	storageClassName: standard
+	resources:
+		requests:
+			storage: 1Gi
+```
+- `spec:`
+	- `volumeName: host-pv`
+		- 바인딩 할 특정 볼륨 정의.
+		- `volumeName` 이 정의 되지 않은 경우, 쿠버네티스가 `accessModes` 와 `resources` 를 수용하는 적절한 `PV` 를 바인딩.
+	- `accessModes:`
+		- `PVC`가 바인딩 요청할 볼륨의 읽기/쓰기 범위 정의.
+		- **`PV` 의 accessModes와 일치하거나 부분 집합이어야 함.**
+		- `- ReadWriteOnce`
+	- `storageClassName: standard`
+		- `PVC` 가 요청하는 `StorageClass` 지정.
+		- 지정 하지 않으면 기본 스토리지 클래스 사용.
+	- `resources:`
+		- 클레임에 필요한 리소스 정의.
+		- `requests:`
+			- `storage: 1Gi`
+				- 1GB의 스토리지 요청.
+
+**Pod 볼륨을 PVC로 정의**
+```yaml
+...
+	spec:
+		containers:
+			- name: story
+			  image: yeom220/kub-data-demo:1
+			  volumeMounts:
+				  - mountPath: /app/story
+				    name: story-volume
+		volumes:
+			- name: story-volume
+			  persistentVolumeClaim:
+				  claimName: host-pvc
+```
+- `persistentVolumeClaim:`
+	- 볼륨 유형을 `PVC` 로 정의.
+	- `claimName: host-pvc`
+		- 볼륨으로 사용할 `PVC` 정의.
+
+
 
 ### 그 외 볼륨 유형
 - [쿠버네티스 볼륨 유형 문서](https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/volume/)
