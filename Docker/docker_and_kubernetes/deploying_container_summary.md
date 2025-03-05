@@ -19,7 +19,7 @@
 >- 모든 이미지는 어떤 외부 코드나 환경설정 없이 동작이 되어야 한다.
 >- 이미지/컨테이너는 단일 구성으로 동작 가능한 소스여야 한다.
 
-![[bind_mounts&volumes&copy.png]]
+![[bind_mounts_volumes_copy.png]]
 
 ---
 # 단일 애플리케이션 구성 예시

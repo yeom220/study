@@ -385,8 +385,35 @@ spec:
 ---
 # 쿠버네티스 데이터 & 볼륨 관리
 
+## 데이터 유형
+
+![[understanding_state.png]]
+- **유저 관련 데이터**
+	- 주로 데이터베이스에 저장.
+- **애플리케이션에서 생성된 임시 데이터**
+	- 주로 메모리에 저장.
+
+## 쿠버네티스 볼륨
+
+![[kubernetes_volumes.png]]
+- **다양한 볼륨 유형 및 드라이버 지원**
+	- 로컬 볼륨들 (`Node` 의존)
+	- 클라우드 프로바이저 볼륨들
+- **`Pod` 에 의존하는 볼륨**
+	- 컨테이너가 재시작 하거나 삭제되어도 볼륨 유지.
+	- `Pod` 가 삭제될 경우 볼륨도 삭제.
+
 ## 쿠버네티스 볼륨 VS 도커 볼륨
 
+![[difference_kuber_docker.png]]
+- **쿠버네티스 볼륨**
+	- 많은 타입 및 드라이버 지원.
+	- 볼륨이 반드시 영구적인 것은 아니다.
+	- 컨테이너가 재시작 하거나 삭제되어도 볼륨은 남는다.
+- **도커 볼륨**
+	- 기본적으로 타입 및 드라이버를 지원하지 않는다.
+	- 볼륨은 직접 제거할 때까지 유지된다.
+	- 컨테이너가 재시작 하거나 삭제되어도 볼륨은 남는다.
 
 ## 쿠버네티스 볼륨 종류
 
@@ -466,6 +493,8 @@ spec:
 >`Cluster` 에 새 리소스, 새 엔티티를 가진 볼륨을 생성하고, 각 `Node` 에 `PV Claim` 을 생성하여 영구 볼륨에 액세스 한다.
 >각 영구 볼륨에 대해 각각의 `Claim` 을 가짐.
 
+![[persistent_volumes.png]]
+
 **영구 볼륨 정의 YAML**
 ```yaml
 apiVersion: v1
@@ -512,11 +541,13 @@ spec:
 >`Pod` 가 `Persistent Volume` 에 접근하기 위한 인터페이스.
 >`PVC` 는 `PV` 와 1:1로 매핑되어, 하나의 `PVC` 는 하나의 `PV` 에만 바인딩 가능.
 
+![[persistent_volumes_claims.png]]
+
 **영구 볼륨 클레임 정의 YAML**
 ```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
-metaData:
+metadata:
 	name: host-pvc
 spec:
 	volumeName: host-pv
@@ -564,11 +595,86 @@ spec:
 	- `claimName: host-pvc`
 		- 볼륨으로 사용할 `PVC` 정의.
 
+### 볼륨 VS 영구 볼륨
 
+![[normal_volumes_persistent_volumes.png]]
+- **일반 볼륨**
+	- 볼륨이 `Pod` 에 생성되어, `Pod` 생명주기를 따른다.
+	- `Pod` 와 같이 정의하고 생성된다.
+	- 반복적이고 글로벌 수준에서 관리하기 어렵다.
+- **영구 볼륨**
+	- 독립형 클러스터 리소스.
+	- 독립 실행형으로 생성되고, `PVC` 를 통해 연결.
+	- 한번 정의하여 여러 번 사용 가능.
 
 ### 그 외 볼륨 유형
 - [쿠버네티스 볼륨 유형 문서](https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/volume/)
 
+---
+## 환경 변수
 
+### 환경 변수 직접 정의
 
+**deployment.yaml**
+```yaml
+...
+	spec:
+	  containers:
+	    - name: story
+		  image: yeom220/kub-data-demo:2
+	      env:
+		    - name: STORY_DIR
+	          value: 'story'
+          volumeMounts:
+            - mountPath: /app/story
+              name: story-volume
+...
+```
+- `env:`
+	- `- name: STORY_DIR`
+		- 환경변수 명을 `STORY_DIR` 로 정의.
+	- `value: 'story'`
+		- 환경변수 값 'story' 대입.
+
+### ConfigMap 사용하여 환경 변수 정의
+
+**environment.yaml**
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: data-store-env
+data:
+  folder: 'story'
+```
+- `data:`
+	- `folder: 'story`
+		- `{key}:{value}` 로 환경변수 정의.
+
+**deployment.yaml**
+```yaml
+...
+	spec:
+	  containers:
+	    - name: story
+		  image: yeom220/kub-data-demo:2
+	      env:
+		    - name: STORY_DIR
+	          valueFrom:
+		        configMapKeyRef:
+		          name: data-store-env
+		          key: folder
+          volumeMounts:
+            - mountPath: /app/story
+              name: story-volume
+...
+```
+- `valueFrom:`
+	- `configMapKeyRef:`
+		- `name: data-store-env`
+			- 쿠버네티스에 등록된 configMap 이름
+		- `key: folder`
+			- 사용할 환경 변수 `key` 지정.
+
+---
 출처: [유데미 Docker & Kubernetes: 실전가이드](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=24T4MT180225)

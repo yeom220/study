@@ -13,7 +13,7 @@
 >2. Laravel Artisan 컨테이너 (DB 마이그레이션)
 >3. Composer 컨테이너 (Laravel 빌드)
 
-![[slides-laravel.pdf]]
+![[laravel_app_architecture.png]]
 
 ---
 # composer.Dockerfile
