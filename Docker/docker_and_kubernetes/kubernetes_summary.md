@@ -677,4 +677,13 @@ data:
 			- 사용할 환경 변수 `key` 지정.
 
 ---
+# 쿠버네티스 네트워크
+
+
+
+
+
+
+
+
 출처: [유데미 Docker & Kubernetes: 실전가이드](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=24T4MT180225)
