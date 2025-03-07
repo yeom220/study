@@ -242,7 +242,7 @@ Generating /path/to/foo/alembic/versions/27c6a30d7c24.py...done
 ```
 
 ```python
-"""empty message
+"""Added account table
 
 Revision ID: 27c6a30d7c24
 Revises: None
@@ -276,6 +276,19 @@ def downgrade():
 ```
 
 [자동 마이그레이션 문서](https://alembic.sqlalchemy.org/en/latest/autogenerate.html#auto-generating-migrations)
+
+---
+# 왜 마이그레이션 도구를 사용할까?
+
+>자바 JPA 는 SQLAlchemy 와 달리 모델(엔티티)와 테이블을 비교하여 자동으로 엔티티에 맞게 테이블을 수정(DDL)하는 기능이 있지만, `Flyway` 라는 마이그레이션 도구를 많이 사용합니다.
+
+##### 개인적인 생각
+
+>데이터베이스는 테이블 또는 컬럼이 삭제되면 데이터도 같이 삭제됩니다.
+>JPA의 경우 엔티티에서 컬럼 하나를 주석하고 애플리케이션만 실행해도 테이블에서 해당 컬럼이 삭제되어 데이터를 잃게 됩니다.
+>이러한 위험성으로 인해 편리함에도 불구하고 안정성을 위해 명시적인 마이그레이션 도구를 사용합니다.
+>마이그레이션 도구는 직접 명령어를 사용해야만 적용되기 때문에 한번 더 체크할 수 있어 실수로 인한 데이터 유실 가능성이 낮습니다.
+>또한, 각각의 데이터베이스 변경사항을 스크립트로 관리하기 때문에 이력 추적이 쉽고, 데이터베이스 구조를 소스 코드처럼 버전 관리도 가능합니다.
 
 ---
 [Alembic 공식 문서](https://alembic.sqlalchemy.org/en/latest/index.html)
