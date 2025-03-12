@@ -14,4 +14,7 @@ spec:
     spec:
       containers:
         - name: users
-          image: yeom220/kub-demo-users
+          image: yeom220/kub-demo-users:latest
+          env:
+            - name: AUTH_ADDRESS
+              value: localhost
