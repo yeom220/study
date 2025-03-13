@@ -679,6 +679,206 @@ data:
 ---
 # 쿠버네티스 네트워크
 
+## 하나의 Pod 안에 있는 다중 컨테이너 통신
+
+>동일 `Pod` 내부 컨테이너들은 **"localhost"** 키워드로 서로 통신이 가능하다.
+>`Auth API` 컨테이너 와 `Users API` 컨테이너 는 동일 `Pod` 에 있으며 `Users API` 에서 `Auth API` 로 통신하는 시나리오.
+
+![[kubernetes_network_first_sinario.png]]
+
+**users-app.js**
+```js
+app.post('/singup', async (req, res) => {
+  ...
+  try {
+    const hashedPW = await axios.get(
+      `http://${process.env.AUTH_ADDRESS}/hashed-password/` + password
+    );
+    res.status(201).json({ message: 'User created!' });
+    
+  } catch (err) {
+    return res.status(500).json({
+      message: 'Creating the user failed - please try again later.'
+    });
+  }
+});
+```
+- `Users API` 로 '/signup' 요청했을 때 `Auth API` 에서 해싱된 패스워드를 받아오는 프로세스.
+
+**users-deployment.yaml**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users
+  template:
+    metadata:
+      labels:
+        app: users
+    spec:
+      containers:
+        - name: users
+          image: yeom220/kub-demo-users:latest
+          env:
+            - name: AUTH_ADDRESS
+              value: localhost
+	    - name: auth
+	      image: yeom220/kub-demo-auth:latest
+```
+- `containers:`
+	- 하나의 `Pod` 에 `Users API` 와 `Auth API` 컨테이너 생성.
+	- `env:`
+		- `- name: AUTH_ADDRESS`
+		- `value: localhost`
+			- 동일 Pod에 있는 컨테이너들은 localhost 로 통신 가능.
+
+**users-service.yaml**
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-service
+spec:
+  selector:
+    app: users
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+```
+- `type: LoadBalancer`
+	- 서비스를 로드 밸런서 타입으로 생성하여 외부 노출
+
+---
+## 클러스터 내부 다중 컨테이너 통신
+
+>쿠버네티스는 서비스 생성시 환경변수를 각 `Pod`의 `ClusterIP` 를 가진 환경변수를 자동으로 생성해준다.
+>각각의 `Pod` 에 있는 `Auth API`, `Users API`, `Tasks API` 컨테이너들이 통신하는 시나리오.
+
+![[kubernetes_network_last_sinario.png]]
+
+**users-service.yaml**
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-service
+spec:
+  selector:
+    app: users
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+```
+
+**auth-service.yaml**
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+```
+- `type: ClusterIP`
+	- `Auth API`는 외부 노출 없이 내부에서만 통신하기 위해 ClusterIP 타입 서비스 생성.
+
+**users-deployment.yaml**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users
+  template:
+    metadata:
+      labels:
+        app: users
+    spec:
+      containers:
+        - name: users
+          image: yeom220/kub-demo-users:latest
+          env:
+            - name: AUTH_ADDRESS
+              value: "10.105.102.32"
+```
+- `env:`
+	- `- name: AUTH_ADDRESS`
+	- `value: "10.105.102.32"`
+		- auth-service 의 ClusterIP.
+		- auth-service 가 삭제되기 전에는 변경되지 않는다.
+
+**auth-deployment.yaml**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+	    - name: auth
+	      image: yeom220/kub-demo-auth:latest
+```
+
+**users-app.js**
+```js
+app.post('/singup', async (req, res) => {
+  ...
+  try {
+    const hashedPW = await axios.get(
+      `http://${process.env.AUTH_ADDRESS}/hashed-password/` + password
+    );
+    res.status(201).json({ message: 'User created!' });
+    
+  } catch (err) {
+    return res.status(500).json({
+      message: 'Creating the user failed - please try again later.'
+    });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  ...
+  const response = await axios.get(
+    `http://${process.env.AUTH_SERVICE_SERVICE_HOST}/token/` + hashedPassword + '/' + password
+  );
+  if (response.status === 200) {
+    return res.status(200).json({ token: response.data.token });
+  }
+  return res.status(response.status).json({ message: 'Logging in failed!' });
+});
+```
+- `${process.env.AUTH_SERVICE_SERVICE_HOST}`
+	- 쿠버네티스가 자동으로 생성하는 환경변수.
+		- `{서비스명의 대문자 스네이크 케이스}_SERVICE_HOST` 로 생성.
+	- auth-service 의 ClusterIP 값을 가짐.
 
 
 

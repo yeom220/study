@@ -17,4 +17,4 @@ spec:
           image: yeom220/kub-demo-users:latest
           env:
             - name: AUTH_ADDRESS
-              value: localhost
+              value: "10.105.102.32"
