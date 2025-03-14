@@ -880,7 +880,39 @@ app.post('/login', async (req, res) => {
 		- `{서비스명의 대문자 스네이크 케이스}_SERVICE_HOST` 로 생성.
 	- auth-service 의 ClusterIP 값을 가짐.
 
+### 클러스터 내부 Pod DNS 통신
 
+>쿠버네티스는 CoreDNS를 DNS 서버로 사용한다.
+>쿠버네티스에서 CoreDNS의 역할
+>- 기본 DNS 서버
+>	- 쿠버네티스 1.13 버전 이후 기본 DNS 서버로 채택.
+>- 서비스 디스커버리
+>	- 클러스터 내의 Service 와 Pod 간 네트워크 통신 관리.
+>- 이름 해석
+>	- 클러스터 내부에서 서비스 이름을 IP 주소로 변환 (예: my-service.default.svc.cluster.local -> 10.0.0.1)
+>- 외부 도메인 쿼리
+>	- 클러스터 외부 도메인에 대한 쿼리를 외부 DNS 서버로 전달.
+>- 배포 방식
+>	- 쿠버네티스 클러스터에서 coredns라는 이름의 Deployment로 배포되며, 각 노드에서 DNS 요청을 처리.
+>- 구성 관리
+>	- CoreDNS의 설정은 ConfigMap을 통해 관리되며, Corefile 이라는 설정 파일로 정의.
+
+**users-deployment.yaml**
+```yaml
+...
+	containers:
+	  - name: users
+	    image: yeom220/kub-demo-users:latest
+	    env:
+	      - name: AUTH_ADDRESS
+	        value: "auth-service.default"
+```
+- `env:`
+	- `- name: AUTH_ADDRESS`
+	- `value: "auth-service.default"`
+		- 쿠버네티스 DNS 서버를 통해 IP로 변환.
+		- `"auth-service.default"`
+			- auth-service는 서비스 명이고 default는 네임스페이스로, `Service` 및 `Deployment` 의 기본 네임스페이스가 default.
 
 
 

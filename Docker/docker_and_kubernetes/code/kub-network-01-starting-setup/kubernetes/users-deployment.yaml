@@ -17,4 +17,5 @@ spec:
           image: yeom220/kub-demo-users:latest
           env:
             - name: AUTH_ADDRESS
-              value: "10.105.102.32"
+              # value: "10.105.102.32"
+              value: "auth-service.default"
