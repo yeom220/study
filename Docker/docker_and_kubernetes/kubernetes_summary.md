@@ -914,6 +914,47 @@ app.post('/login', async (req, res) => {
 		- `"auth-service.default"`
 			- auth-service는 서비스 명이고 default는 네임스페이스로, `Service` 및 `Deployment` 의 기본 네임스페이스가 default.
 
+**tasks-deployment.yaml**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasks-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tasks
+  template:
+    metadata:
+      labels:
+        app: tasks
+    spec:
+      containers:
+        - name: tasks
+          image: yeom220/kub-demo-tasks:latest
+          env:
+            - name: TASKS_FOLDER
+              value: tasks
+            - name: AUTH_ADDRESS
+              value: auth-service.default
+```
+
+**tasks-service.yaml**
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: tasks-service
+spec:
+  selector:
+    app: tasks
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+```
 
 
 
