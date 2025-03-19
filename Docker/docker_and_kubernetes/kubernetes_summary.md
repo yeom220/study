@@ -956,6 +956,167 @@ spec:
       targetPort: 8000
 ```
 
+### 클러스터 내부 프론트엔드 앱 배포
+
+**App.js (React)**
+```js
+function App() {
+  const [tasks, setTasks] = useState([]);
+
+  const fetchTasks = useCallback(function () {
+    fetch(`http://127.0.0.1:58313/tasks`, {
+      headers: {
+        'Authorization': 'Bearer abc'
+      }
+    })
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (jsonData) {
+        setTasks(jsonData.tasks);
+      });
+  }, []);
+
+  useEffect(
+    function () {
+      fetchTasks();
+    },
+    [fetchTasks]
+  );
+
+  function addTaskHandler(task) {
+    fetch(`http://127.0.0.1:58313/tasks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer abc',
+      },
+      body: JSON.stringify(task),
+    })
+      .then(function (response) {
+        console.log(response);
+        return response.json();
+      })
+      .then(function (resData) {
+        console.log(resData);
+      });
+  }
+
+  return (
+    <div className='App'>
+      <section>
+        <NewTask onAddTask={addTaskHandler} />
+      </section>
+      <section>
+        <button onClick={fetchTasks}>Fetch Tasks</button>
+        <TaskList tasks={tasks} />
+      </section>
+    </div>
+  );
+}
+
+export default App;
+```
+- React 로 구현된 프론트엔드 코드
+
+**frontend-deployment.yaml**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: yeom220/kub-demo-frontend:latest
+```
+
+**frontend-service.yaml**
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: frontend
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+```
+
+#### 리버스 프록시 사용
+
+>위의 프론트엔드 앱 코드에는 1가지 문제점이 있다.
+>```js
+>fetch(`http://127.0.0.1:58313/tasks`, {
+>  headers: {
+       'Authorization': 'Bearer abc'
+    }
+  })
+>```
+>API 요청을 위한 URL(호스트)이 브라우저에서 해석되기 때문에 환경에 따라 작동되지 않을 수 있다.
+>이를 해결하기 위해 웹서버(Nginx)의 리버스 프록시를 사용해본다.
+
+**App.js (React)**
+```js
+function App() {
+...
+
+  const fetchTasks = useCallback(function () {
+    fetch(`/api/tasks`, {
+      headers: {
+        'Authorization': 'Bearer abc'
+      }
+...
+
+  function addTaskHandler(task) {
+    fetch(`/api/tasks`, {
+      method: 'POST',
+...
+}
+
+export default App;
+```
+
+**nginx.conf**
+```conf
+server {
+  listen 80;
+
+  location /api/ {
+    proxy_pass http://tasks-service.default:8000/;
+  }
+
+  location / {
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+    try_files $uri $uri/ /index.html =404;
+  }
+
+  include /etc/nginx/extra-conf.d/*.conf;
+}
+```
+- Nginx 설정 파일.
+- `location /api/ {}`
+	- `/api/` 로 시작하는 모든 요청을 처리 방식을 정의.
+	- `proxy_pass http://tasks-service.default:8000/;`
+		- 리버스 프록시 지시어로 `/api/` 로 오는 모든 요청을 `http://tasks-service.default:8000/` 로 전달
+	- `tasks-service.default` 는 클러스터 내부에서만 사용할 수 있는 변수이기 때문에 App.js 에 직접 작성하면 브라우저에서는 404 에러가 발생하지만, Nginx 서버는 클러스터 내부에서 실행되기 때문에 `Cluster-IP` 로 변환 된다.
+
+
+
 
 
 
