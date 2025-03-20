@@ -1115,9 +1115,5 @@ server {
 		- 리버스 프록시 지시어로 `/api/` 로 오는 모든 요청을 `http://tasks-service.default:8000/` 로 전달
 	- `tasks-service.default` 는 클러스터 내부에서만 사용할 수 있는 변수이기 때문에 App.js 에 직접 작성하면 브라우저에서는 404 에러가 발생하지만, Nginx 서버는 클러스터 내부에서 실행되기 때문에 `Cluster-IP` 로 변환 된다.
 
-
-
-
-
-
+---
 출처: [유데미 Docker & Kubernetes: 실전가이드](https://www.udemy.com/course/docker-kubernetes-2022/?couponCode=24T4MT180225)
