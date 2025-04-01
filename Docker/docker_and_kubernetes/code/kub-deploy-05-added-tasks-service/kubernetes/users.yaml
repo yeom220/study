@@ -9,7 +9,7 @@ kind: PersistentVolume
 metadata:
   name: efs-pv
 spec:
-  capacity: 
+  capacity:
     storage: 5Gi
   volumeMode: Filesystem
   accessModes:
@@ -41,7 +41,7 @@ spec:
   type: LoadBalancer
   ports:
     - protocol: TCP
-      port: 8080
+      port: 80
       targetPort: 3000
 ---
 apiVersion: apps/v1
@@ -71,5 +71,5 @@ spec:
               mountPath: /app/users
       volumes:
         - name: efs-vol
-          persistentVolumeClaim: 
+          persistentVolumeClaim:
             claimName: efs-pvc

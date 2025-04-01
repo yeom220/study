@@ -1,55 +1,22 @@
-kind: StorageClass
-apiVersion: storage.k8s.io/v1
-metadata:
-  name: efs-sc
-provisioner: efs.csi.aws.com
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: efs-pv
-spec:
-  capacity: 
-    storage: 5Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteMany
-  storageClassName: efs-sc
-  csi:
-    driver: efs.csi.aws.com
-    volumeHandle: fs-59d14521
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: efs-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: efs-sc
-  resources:
-    requests:
-      storage: 5Gi
----
 apiVersion: v1
 kind: Service
 metadata:
-  name: task-service
+  name: tasks-service
 spec:
   selector:
     app: task
   type: LoadBalancer
   ports:
     - protocol: TCP
-      port: 3000
+      port: 80
       targetPort: 3000
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: task-deployment
+  name: tasks-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: task
@@ -59,8 +26,8 @@ spec:
         app: task
     spec:
       containers:
-        - name: task-api
-          image: yeom220/kub-dep-task:latest
+        - name: tasks-api
+          image: yeom220/kub-dep-tasks:latest
           env:
             - name: MONGODB_CONNECTION_URI
               value: 'mongodb://mongo:27017/users?retryWrites=true&w=majority'
