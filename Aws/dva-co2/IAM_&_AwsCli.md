@@ -14,5 +14,12 @@
 ![[iam_policies_structure.png]]
 
 
+## 비밀번호 정책
+
+![[iam_password_policy.png]]
+
+
+
+
 ---
-출처: [유데미 AWS DVA-C-2 시험 합격!](https://www.udemy.com/course/best-aws-certified-developer-associate/?couponCode=KEEPLEARNING)
+출처: [유데미 AWS DVA-CO2 시험 합격!](https://www.udemy.com/course/best-aws-certified-developer-associate/?couponCode=KEEPLEARNING)
