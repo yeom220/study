@@ -1,10 +1,5 @@
 # IAM
 - 글로벌 서비스로 모든 리전에서 사용 가능
-	- 리전 선택 불필요
-- 
-
-
-## Group
 
 
 ## IAM Policies 
@@ -18,8 +13,9 @@
 
 ![[iam_password_policy.png]]
 
+## IAM 모범 사례
 
-
+![[iam_guidelines_&_best_practices.png]]
 
 ---
 출처: [유데미 AWS DVA-CO2 시험 합격!](https://www.udemy.com/course/best-aws-certified-developer-associate/?couponCode=KEEPLEARNING)
